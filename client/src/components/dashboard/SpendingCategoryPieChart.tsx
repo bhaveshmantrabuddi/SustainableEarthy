@@ -64,27 +64,9 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-// Custom label to show percentage
-const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
-  const RADIAN = Math.PI / 180;
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-  return (
-    <text 
-      x={x} 
-      y={y} 
-      fill="white" 
-      textAnchor="middle" 
-      dominantBaseline="central"
-      fontSize={12}
-      fontWeight="bold"
-    >
-      {`${(percent * 100).toFixed(0)}%`}
-    </text>
-  );
-};
+// We'll use labelLine={true} and let the Recharts legend handle the category names
+// This way we don't need to render our own labels
+const renderCustomizedLabel = () => null;
 
 export default function SpendingCategoryPieChart() {
   const { data, isLoading } = useQuery<CategoryBreakdown[]>({
@@ -127,13 +109,21 @@ export default function SpendingCategoryPieChart() {
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
-                  outerRadius={120}
+                  outerRadius={90}
                   dataKey="value"
                   labelLine={false}
                   label={renderCustomizedLabel}
+                  paddingAngle={3}
+                  animationBegin={0}
+                  animationDuration={1000}
                 >
                   {chartData.map((entry: ChartDataItem, index: number) => (
-                    <Cell key={`cell-${index}`} fill={getCategoryColor(entry.name)} />
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={getCategoryColor(entry.name)} 
+                      stroke="#fff"
+                      strokeWidth={1}
+                    />
                   ))}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
@@ -141,17 +131,22 @@ export default function SpendingCategoryPieChart() {
                   layout="horizontal" 
                   verticalAlign="bottom" 
                   align="center"
+                  iconType="circle"
+                  iconSize={10}
                   formatter={(value) => (
                     <span className="text-sm font-medium">{value}</span>
                   )}
+                  wrapperStyle={{ paddingTop: 20 }}
                 />
               </PieChart>
             </ResponsiveContainer>
             
             {/* Center text */}
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-              <span className="text-sm text-neutral-700 font-medium">Total Impact</span>
-              <span className="text-2xl font-bold text-primary">{firstEcoScore}/100</span>
+              <div className="bg-white bg-opacity-80 rounded-full p-3 shadow-sm">
+                <span className="text-sm text-neutral-700 font-medium block">Total Impact</span>
+                <span className="text-2xl font-bold text-primary block">{firstEcoScore}/100</span>
+              </div>
             </div>
           </div>
           
