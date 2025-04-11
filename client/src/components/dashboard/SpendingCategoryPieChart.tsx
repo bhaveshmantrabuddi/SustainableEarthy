@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Leaf } from "lucide-react";
+import { Leaf, ChevronDown, ChevronUp } from "lucide-react";
 import { 
   PieChart, 
   Pie, 
@@ -9,6 +9,13 @@ import {
   Tooltip
 } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 // Define types for category data
 interface CategoryBreakdown {
@@ -72,6 +79,7 @@ export default function SpendingCategoryPieChart() {
   const { data, isLoading } = useQuery<CategoryBreakdown[]>({
     queryKey: ['/api/category-breakdowns'],
   });
+  const [isOpen, setIsOpen] = useState(false);
 
   // Prepare data for pie chart
   const chartData: ChartDataItem[] = data?.map((category: CategoryBreakdown) => ({
@@ -84,7 +92,7 @@ export default function SpendingCategoryPieChart() {
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-5 border border-neutral-200 mb-8">
-      <h2 className="text-lg font-semibold font-heading text-neutral-800 mb-4">Spending Category Breakdown</h2>
+      <h2 className="text-lg font-semibold font-heading text-neutral-800 mb-6">Spending Category Breakdown</h2>
       
       {isLoading ? (
         <div className="flex flex-col items-center space-y-6 py-8">
@@ -99,17 +107,17 @@ export default function SpendingCategoryPieChart() {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-          {/* Larger Pie Chart */}
-          <div className="w-full md:w-1/2 h-80 relative">
+        <>
+          {/* Pie Chart - Full Width */}
+          <div className="mx-auto w-full h-[300px] relative mb-8">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={chartData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={90}
+                  innerRadius={70}
+                  outerRadius={120}
                   dataKey="value"
                   labelLine={false}
                   label={renderCustomizedLabel}
@@ -150,51 +158,76 @@ export default function SpendingCategoryPieChart() {
             </div>
           </div>
           
-          {/* Category breakdown details */}
-          <div className="w-full md:w-1/2">
-            <h3 className="text-md font-semibold text-neutral-800 mb-3">Category Details</h3>
-            <div className="space-y-4">
-              {data?.map((category: CategoryBreakdown, index: number) => (
-                <div key={index} className="p-3 border border-neutral-200 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center">
+          {/* Collapsible Category Details Section */}
+          <Collapsible 
+            open={isOpen} 
+            onOpenChange={setIsOpen}
+            className="w-full border rounded-lg overflow-hidden"
+          >
+            <CollapsibleTrigger asChild>
+              <Button 
+                variant="ghost" 
+                className="flex w-full justify-between items-center p-4 hover:bg-neutral-50"
+              >
+                <div className="flex items-center">
+                  <h3 className="text-md font-semibold text-neutral-800">Category Details</h3>
+                  {data && data.length > 0 && (
+                    <span className="ml-2 text-xs bg-neutral-100 text-neutral-700 rounded-full px-2 py-0.5">
+                      {data.length} categories
+                    </span>
+                  )}
+                </div>
+                {isOpen ? 
+                  <ChevronUp className="h-4 w-4 text-neutral-500" /> : 
+                  <ChevronDown className="h-4 w-4 text-neutral-500" />
+                }
+              </Button>
+            </CollapsibleTrigger>
+            
+            <CollapsibleContent>
+              <div className="space-y-4 p-4 pt-0 bg-neutral-50">
+                {data?.map((category: CategoryBreakdown, index: number) => (
+                  <div key={index} className="p-3 bg-white rounded-lg border border-neutral-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center">
+                        <div 
+                          className="w-4 h-4 rounded-full mr-2" 
+                          style={{ backgroundColor: getCategoryColor(category.category) }}
+                        ></div>
+                        <span className="text-sm font-medium capitalize">{category.category}</span>
+                      </div>
+                      <span className="text-sm font-bold">${category.amount.toFixed(2)}</span>
+                    </div>
+                    
+                    <div className="bg-neutral-100 h-2 rounded-full w-full mt-1">
                       <div 
-                        className="w-4 h-4 rounded-full mr-2" 
-                        style={{ backgroundColor: getCategoryColor(category.category) }}
+                        className="h-2 rounded-full" 
+                        style={{ 
+                          width: `${category.ecoScore}%`, 
+                          backgroundColor: getCategoryColor(category.category) 
+                        }}
                       ></div>
-                      <span className="text-sm font-medium capitalize">{category.category}</span>
                     </div>
-                    <span className="text-sm font-bold">${category.amount.toFixed(2)}</span>
-                  </div>
-                  
-                  <div className="bg-neutral-100 h-2 rounded-full w-full mt-1">
-                    <div 
-                      className="h-2 rounded-full" 
-                      style={{ 
-                        width: `${category.ecoScore}%`, 
-                        backgroundColor: getCategoryColor(category.category) 
-                      }}
-                    ></div>
-                  </div>
-                  
-                  <div className="flex justify-between mt-1 text-xs text-neutral-600">
-                    <span>Eco Impact:</span>
-                    <div className="flex items-center">
-                      <Leaf className="h-3 w-3 mr-1 text-primary" />
-                      <span>{category.ecoScore}/100</span>
+                    
+                    <div className="flex justify-between mt-1 text-xs text-neutral-600">
+                      <span>Eco Impact:</span>
+                      <div className="flex items-center">
+                        <Leaf className="h-3 w-3 mr-1 text-primary" />
+                        <span>{category.ecoScore}/100</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              
-              {(!data || data.length === 0) && (
-                <div className="p-4 bg-neutral-50 rounded-lg text-center text-neutral-600">
-                  No spending data available. Upload a CSV to see your category breakdown.
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+                ))}
+                
+                {(!data || data.length === 0) && (
+                  <div className="p-4 bg-neutral-50 rounded-lg text-center text-neutral-600">
+                    No spending data available. Upload a CSV to see your category breakdown.
+                  </div>
+                )}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </>
       )}
     </div>
   );
