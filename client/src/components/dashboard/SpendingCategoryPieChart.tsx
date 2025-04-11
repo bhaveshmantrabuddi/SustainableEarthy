@@ -81,6 +81,9 @@ export default function SpendingCategoryPieChart() {
   });
   const [isOpen, setIsOpen] = useState(false);
 
+  // Check if there's actual data to display
+  const hasData = data && data.length > 0;
+
   // Prepare data for pie chart - consolidate duplicate categories
   const categoryMap = new Map<string, { amount: number, ecoScore: number }>();
   
@@ -108,7 +111,8 @@ export default function SpendingCategoryPieChart() {
     ecoScore: values.ecoScore
   })) || [];
 
-  const firstEcoScore = data && data.length > 0 ? data[0].ecoScore : 76;
+  // Only calculate eco score if we have data
+  const firstEcoScore = hasData ? data[0].ecoScore : 0;
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-5 border border-neutral-200 mb-8">
@@ -125,6 +129,17 @@ export default function SpendingCategoryPieChart() {
               </div>
             ))}
           </div>
+        </div>
+      ) : !hasData ? (
+        // Empty state when no data is available
+        <div className="flex flex-col items-center justify-center py-12 px-4">
+          <div className="w-24 h-24 rounded-full bg-neutral-100 flex items-center justify-center mb-4">
+            <Leaf className="h-12 w-12 text-neutral-300" />
+          </div>
+          <h3 className="text-lg font-medium text-neutral-700 mb-2">No spending data yet</h3>
+          <p className="text-neutral-500 text-center max-w-md">
+            Upload your first transaction data to see your spending categories breakdown and sustainable shopping insights.
+          </p>
         </div>
       ) : (
         <>

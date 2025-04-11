@@ -48,7 +48,7 @@ const ScoreCard = ({
 );
 
 export default function SustainabilityScoreSection() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['/api/sustainability-score'],
   });
 
@@ -69,6 +69,22 @@ export default function SustainabilityScoreSection() {
       </div>
     );
   }
+  
+  // If there's no data or error (404 Not Found), show empty state
+  if (!data || error) {
+    return (
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold font-heading text-neutral-800 mb-4">Your Sustainability Overview</h2>
+        <div className="border border-dashed rounded-xl p-8 text-center border-neutral-300 bg-neutral-50">
+          <Leaf className="w-12 h-12 mx-auto text-neutral-300 mb-3" />
+          <h3 className="text-lg font-medium text-neutral-700 mb-2">No sustainability data yet</h3>
+          <p className="text-neutral-500 max-w-md mx-auto">
+            Upload your first transaction data using the CSV uploader below to start tracking your sustainability metrics.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mb-8">
@@ -78,9 +94,9 @@ export default function SustainabilityScoreSection() {
         {/* Overall Score Card */}
         <ScoreCard
           title="Overall Eco-Score"
-          score={data?.overallScore || 76}
+          score={data.overallScore}
           trend={{ value: 4, isPositive: true }}
-          percentage={data?.overallScore || 76}
+          percentage={data.overallScore}
           info="Good - Top 25% of users"
           icon={<Leaf className="text-7xl text-primary absolute -top-2 -right-2" />}
           color="text-primary"
@@ -89,7 +105,7 @@ export default function SustainabilityScoreSection() {
         {/* Carbon Footprint Card */}
         <ScoreCard
           title="Carbon Footprint"
-          score={data?.carbonFootprint || 147}
+          score={data.carbonFootprint}
           unit="kg CO₂"
           percentage={65}
           info="12% below average"
@@ -100,9 +116,9 @@ export default function SustainabilityScoreSection() {
         {/* Sustainable Purchases Card */}
         <ScoreCard
           title="Sustainable Purchases"
-          score={data?.sustainablePurchases || 68}
+          score={data.sustainablePurchases}
           unit="%"
-          percentage={data?.sustainablePurchases || 68}
+          percentage={data.sustainablePurchases}
           info="of all transactions"
           icon={<ShoppingBag className="text-7xl text-accent absolute -top-2 -right-2" />}
           color="text-accent"
@@ -111,7 +127,7 @@ export default function SustainabilityScoreSection() {
         {/* Water Usage Card */}
         <ScoreCard
           title="Water Usage"
-          score={data?.waterUsage || 1.8}
+          score={data.waterUsage}
           unit="kL"
           percentage={45}
           info="Good - 20% below average"
