@@ -1,14 +1,40 @@
 import { useState } from "react";
-import { Menu, Bell, HelpCircle, User } from "lucide-react";
+import { Menu, Bell, HelpCircle, User, LogOut } from "lucide-react";
 import { Leaf } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
+  const { user, logoutMutation } = useAuth();
   
   const handleToggleSidebar = () => {
     // This would be implemented with a mobile sidebar state
     // For now, we'll just show an alert to match the reference design
     alert('Mobile menu would toggle here in the actual implementation');
+  };
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
+
+  // Get initials for avatar
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
   };
 
   return (
@@ -40,7 +66,9 @@ export default function Header() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <i className="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-600"></i>
+              <svg className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+              </svg>
             </div>
           </div>
           
@@ -52,10 +80,34 @@ export default function Header() {
             <button className="p-2 rounded-full text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100 ml-1" title="Help">
               <HelpCircle className="h-5 w-5" />
             </button>
-            {/* Mobile user profile */}
-            <button className="lg:hidden p-2 rounded-full text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100 ml-1">
-              <User className="h-5 w-5" />
-            </button>
+            
+            {/* User profile dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full ml-2">
+                  <Avatar>
+                    <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                      {user?.name ? getInitials(user.name) : "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel>
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{user?.name}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user?.username}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

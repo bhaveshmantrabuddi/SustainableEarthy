@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -14,15 +14,9 @@ import MobileNav from "@/components/layout/MobileNav";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { useAuth } from "@/hooks/use-auth";
+import { useEffect } from "react";
 
-function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  
-  // Don't show layout for unauthenticated users or on auth page
-  if (!user) {
-    return <>{children}</>;
-  }
-  
+function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col lg:flex-row min-h-screen">
       <Sidebar />
@@ -35,18 +29,84 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Router() {
+// Helper components to handle redirection
+function RedirectToAuth() {
+  const [, navigate] = useLocation();
+  useEffect(() => {
+    navigate("/auth");
+  }, [navigate]);
+  return null;
+}
+
+function RedirectToHome() {
+  const [, navigate] = useLocation();
+  useEffect(() => {
+    navigate("/");
+  }, [navigate]);
+  return null;
+}
+
+function Routes() {
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      </div>
+    );
+  }
+  
   return (
-    <AppLayout>
-      <Switch>
-        <ProtectedRoute path="/" component={Dashboard} />
-        <ProtectedRoute path="/transactions" component={Transactions} />
-        <ProtectedRoute path="/insights" component={Insights} />
-        <ProtectedRoute path="/recommendations" component={Recommendations} />
-        <Route path="/auth" component={AuthPage} />
-        <Route component={NotFound} />
-      </Switch>
-    </AppLayout>
+    <Switch>
+      <Route path="/auth">
+        {user ? <RedirectToHome /> : <AuthPage />}
+      </Route>
+      
+      <Route path="/">
+        {user ? (
+          <AuthenticatedLayout>
+            <Dashboard />
+          </AuthenticatedLayout>
+        ) : (
+          <RedirectToAuth />
+        )}
+      </Route>
+      
+      <Route path="/transactions">
+        {user ? (
+          <AuthenticatedLayout>
+            <Transactions />
+          </AuthenticatedLayout>
+        ) : (
+          <RedirectToAuth />
+        )}
+      </Route>
+      
+      <Route path="/insights">
+        {user ? (
+          <AuthenticatedLayout>
+            <Insights />
+          </AuthenticatedLayout>
+        ) : (
+          <RedirectToAuth />
+        )}
+      </Route>
+      
+      <Route path="/recommendations">
+        {user ? (
+          <AuthenticatedLayout>
+            <Recommendations />
+          </AuthenticatedLayout>
+        ) : (
+          <RedirectToAuth />
+        )}
+      </Route>
+      
+      <Route>
+        <NotFound />
+      </Route>
+    </Switch>
   );
 }
 
@@ -54,7 +114,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router />
+        <Routes />
         <Toaster />
       </AuthProvider>
     </QueryClientProvider>

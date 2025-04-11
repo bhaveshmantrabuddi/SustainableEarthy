@@ -52,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return null;
       }
     },
+    initialData: null
   });
 
   const loginMutation = useMutation({
