@@ -81,18 +81,38 @@ export default function SpendingCategoryPieChart() {
   });
   const [isOpen, setIsOpen] = useState(false);
 
-  // Prepare data for pie chart
-  const chartData: ChartDataItem[] = data?.map((category: CategoryBreakdown) => ({
-    name: category.category.charAt(0).toUpperCase() + category.category.slice(1),
-    value: category.amount,
-    ecoScore: category.ecoScore
+  // Prepare data for pie chart - consolidate duplicate categories
+  const categoryMap = new Map<string, { amount: number, ecoScore: number }>();
+  
+  // Group by category name (case insensitive)
+  data?.forEach((category: CategoryBreakdown) => {
+    const normalizedName = category.category.toLowerCase();
+    if (categoryMap.has(normalizedName)) {
+      const existing = categoryMap.get(normalizedName)!;
+      categoryMap.set(normalizedName, {
+        amount: existing.amount + category.amount,
+        ecoScore: Math.round((existing.ecoScore + category.ecoScore) / 2) // average eco score
+      });
+    } else {
+      categoryMap.set(normalizedName, {
+        amount: category.amount,
+        ecoScore: category.ecoScore
+      });
+    }
+  });
+  
+  // Convert map back to array for chart
+  const chartData: ChartDataItem[] = Array.from(categoryMap).map(([category, values]) => ({
+    name: category.charAt(0).toUpperCase() + category.slice(1),
+    value: values.amount,
+    ecoScore: values.ecoScore
   })) || [];
 
   const firstEcoScore = data && data.length > 0 ? data[0].ecoScore : 76;
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-5 border border-neutral-200 mb-8">
-      <h2 className="text-lg font-semibold font-heading text-neutral-800 mb-6">Spending Category Breakdown</h2>
+      <h2 className="text-base font-semibold font-heading text-neutral-800 mb-1">Spending Category Breakdown</h2>
       
       {isLoading ? (
         <div className="flex flex-col items-center space-y-6 py-8">
@@ -109,15 +129,15 @@ export default function SpendingCategoryPieChart() {
       ) : (
         <>
           {/* Pie Chart - Full Width */}
-          <div className="mx-auto w-full h-[300px] relative mb-8">
+          <div className="mx-auto w-full h-[350px] relative mb-8 mt-6">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
+              <PieChart margin={{ top: 30, bottom: 30 }}>
                 <Pie
                   data={chartData}
                   cx="50%"
-                  cy="50%"
+                  cy="45%"
                   innerRadius={70}
-                  outerRadius={120}
+                  outerRadius={110}
                   dataKey="value"
                   labelLine={false}
                   label={renderCustomizedLabel}
