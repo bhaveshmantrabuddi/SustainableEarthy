@@ -7,34 +7,56 @@ import Dashboard from "@/pages/Dashboard";
 import Transactions from "@/pages/Transactions";
 import Insights from "@/pages/Insights";
 import Recommendations from "@/pages/Recommendations";
+import AuthPage from "@/pages/auth-page";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import MobileNav from "@/components/layout/MobileNav";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedRoute } from "@/lib/protected-route";
+import { useAuth } from "@/hooks/use-auth";
 
-function Router() {
+function AppLayout({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  
+  // Don't show layout for unauthenticated users or on auth page
+  if (!user) {
+    return <>{children}</>;
+  }
+  
   return (
     <div className="flex flex-col lg:flex-row min-h-screen">
       <Sidebar />
       <main className="flex-1 overflow-x-hidden">
         <Header />
-        <Switch>
-          <Route path="/" component={Dashboard} />
-          <Route path="/transactions" component={Transactions} />
-          <Route path="/insights" component={Insights} />
-          <Route path="/recommendations" component={Recommendations} />
-          <Route component={NotFound} />
-        </Switch>
+        {children}
       </main>
       <MobileNav />
     </div>
   );
 }
 
+function Router() {
+  return (
+    <AppLayout>
+      <Switch>
+        <ProtectedRoute path="/" component={Dashboard} />
+        <ProtectedRoute path="/transactions" component={Transactions} />
+        <ProtectedRoute path="/insights" component={Insights} />
+        <ProtectedRoute path="/recommendations" component={Recommendations} />
+        <Route path="/auth" component={AuthPage} />
+        <Route component={NotFound} />
+      </Switch>
+    </AppLayout>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router />
-      <Toaster />
+      <AuthProvider>
+        <Router />
+        <Toaster />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

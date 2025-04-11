@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { 
@@ -9,13 +9,22 @@ import {
 import { parseCSV, CSVParseError } from "./utils/csvParser";
 import { processTransactions } from "./utils/sustainabilityCalculator";
 import { ZodError } from "zod";
+import { setupAuth } from "./auth";
 
-// Default user ID for now (since we're not implementing auth)
-const DEFAULT_USER_ID = 1;
+// Authentication middleware
+const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  return res.status(401).json({ message: "Authentication required" });
+};
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up authentication routes
+  setupAuth(app);
+  
   // CSV Upload endpoint
-  app.post("/api/upload-csv", async (req: Request, res: Response) => {
+  app.post("/api/upload-csv", isAuthenticated, async (req: Request, res: Response) => {
     try {
       if (!req.body.csvData) {
         return res.status(400).json({ message: "No CSV data provided" });
@@ -24,12 +33,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Parse CSV data
       const csvRows = parseCSV(req.body.csvData);
       
+      // Get user ID from authenticated session
+      const userId = req.user!.id;
+      
       // Process CSV into transactions and calculate sustainability metrics
       const { 
         transactions, 
         sustainabilityScore, 
         categoryBreakdowns 
-      } = processTransactions(csvRows, DEFAULT_USER_ID);
+      } = processTransactions(csvRows, userId);
       
       // Store transactions
       const savedTransactions = await storage.createTransactions(transactions);
@@ -65,9 +77,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get sustainability score
-  app.get("/api/sustainability-score", async (req: Request, res: Response) => {
+  app.get("/api/sustainability-score", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const score = await storage.getLatestSustainabilityScore(DEFAULT_USER_ID);
+      const userId = req.user!.id;
+      const score = await storage.getLatestSustainabilityScore(userId);
       
       if (!score) {
         return res.status(404).json({ message: "No sustainability score found" });
@@ -81,24 +94,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get transactions
-  app.get("/api/transactions", async (req: Request, res: Response) => {
+  app.get("/api/transactions", isAuthenticated, async (req: Request, res: Response) => {
     try {
+      const userId = req.user!.id;
       const { category, minScore, maxScore } = req.query;
       let transactions;
       
       if (category) {
         transactions = await storage.getTransactionsByCategory(
           category as string, 
-          DEFAULT_USER_ID
+          userId
         );
       } else if (minScore && maxScore) {
         transactions = await storage.getTransactionsByEcoScore(
           parseInt(minScore as string),
           parseInt(maxScore as string),
-          DEFAULT_USER_ID
+          userId
         );
       } else {
-        transactions = await storage.getTransactions(DEFAULT_USER_ID);
+        transactions = await storage.getTransactions(userId);
       }
       
       res.status(200).json(transactions);
@@ -109,9 +123,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get category breakdowns
-  app.get("/api/category-breakdowns", async (req: Request, res: Response) => {
+  app.get("/api/category-breakdowns", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const breakdowns = await storage.getCategoryBreakdowns(DEFAULT_USER_ID);
+      const userId = req.user!.id;
+      const breakdowns = await storage.getCategoryBreakdowns(userId);
       res.status(200).json(breakdowns);
     } catch (error) {
       console.error("Error fetching category breakdowns:", error);
@@ -120,35 +135,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get recommendations
-  app.get("/api/recommendations", async (req: Request, res: Response) => {
+  app.get("/api/recommendations", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const recommendations = await storage.getRecommendations(DEFAULT_USER_ID);
+      const userId = req.user!.id;
+      const recommendations = await storage.getRecommendations(userId);
       res.status(200).json(recommendations);
     } catch (error) {
       console.error("Error fetching recommendations:", error);
       res.status(500).json({ message: "Failed to fetch recommendations" });
-    }
-  });
-  
-  // Get user info (for profile display)
-  app.get("/api/user", async (req: Request, res: Response) => {
-    try {
-      const user = await storage.getUser(DEFAULT_USER_ID);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      // Don't return the password
-      const { password, ...userInfo } = user;
-      
-      res.status(200).json({
-        ...userInfo,
-        name: "Alex Morgan" // Hardcoded for this example
-      });
-    } catch (error) {
-      console.error("Error fetching user info:", error);
-      res.status(500).json({ message: "Failed to fetch user info" });
     }
   });
 
