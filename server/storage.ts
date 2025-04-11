@@ -71,39 +71,7 @@ export class MemStorage implements IStorage {
     this.currentBreakdownId = 1;
     this.currentRecommendationId = 1;
     
-    // Initialize with a default user
-    this.createUser({
-      username: "alex@example.com",
-      password: "password123"
-    });
-    
-    // Initialize with some default recommendations
-    this.createRecommendation({
-      userId: 1,
-      title: "Switch to Local Farmers Market",
-      description: "Based on your Whole Foods purchases, switching to a local farmers market could significantly reduce your carbon footprint.",
-      icon: "ri-recycle-line",
-      potentialImpact: "High",
-      category: "Groceries"
-    });
-    
-    this.createRecommendation({
-      userId: 1,
-      title: "Try Public Transportation",
-      description: "Your Uber trips could be replaced with public transit options that significantly reduce your transportation footprint.",
-      icon: "ri-car-line",
-      potentialImpact: "High",
-      category: "Transportation"
-    });
-    
-    this.createRecommendation({
-      userId: 1,
-      title: "Sustainable Fashion Brands",
-      description: "Consider these sustainable clothing brands instead of H&M to reduce your fashion carbon footprint by up to 70%.",
-      icon: "ri-t-shirt-line",
-      potentialImpact: "High",
-      category: "Shopping"
-    });
+    // No default users or data - each new account starts empty
   }
 
   // User methods
