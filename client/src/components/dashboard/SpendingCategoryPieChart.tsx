@@ -1,0 +1,206 @@
+import { useQuery } from "@tanstack/react-query";
+import { Leaf } from "lucide-react";
+import { 
+  PieChart, 
+  Pie, 
+  Cell, 
+  ResponsiveContainer, 
+  Legend,
+  Tooltip
+} from "recharts";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Define types for category data
+interface CategoryBreakdown {
+  userId: number;
+  category: string;
+  amount: number;
+  ecoScore: number;
+  id: number;
+}
+
+interface ChartDataItem {
+  name: string;
+  value: number;
+  ecoScore: number;
+}
+
+// Helper for determining color based on category
+const getCategoryColor = (category: string): string => {
+  const colors: Record<string, string> = {
+    "groceries": "#2E7D32", // primary
+    "transportation": "#00695C", // secondary
+    "dining": "#FFC107", // accent
+    "shopping": "#E0E0E0", // neutral
+    "utilities": "#4CAF50",
+    "housing": "#00897B",
+    "health": "#FFCA28",
+    "education": "#1B5E20",
+    "travel": "#004D40",
+    "entertainment": "#FFA000",
+    "food & drink": "#2E7D32",
+  };
+
+  // Find matching category (case-insensitive)
+  for (const [key, value] of Object.entries(colors)) {
+    if (category.toLowerCase().includes(key.toLowerCase())) {
+      return value;
+    }
+  }
+  
+  return "#E0E0E0"; // Default neutral
+};
+
+// Custom tooltip for the pie chart
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-2 border border-neutral-200 shadow-sm rounded-md text-sm">
+        <p className="font-medium">{payload[0].name}</p>
+        <p>${payload[0].value.toFixed(2)}</p>
+      </div>
+    );
+  }
+  return null;
+};
+
+// Custom label to show percentage
+const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+  const RADIAN = Math.PI / 180;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <text 
+      x={x} 
+      y={y} 
+      fill="white" 
+      textAnchor="middle" 
+      dominantBaseline="central"
+      fontSize={12}
+      fontWeight="bold"
+    >
+      {`${(percent * 100).toFixed(0)}%`}
+    </text>
+  );
+};
+
+export default function SpendingCategoryPieChart() {
+  const { data, isLoading } = useQuery<CategoryBreakdown[]>({
+    queryKey: ['/api/category-breakdowns'],
+  });
+
+  // Prepare data for pie chart
+  const chartData: ChartDataItem[] = data?.map((category: CategoryBreakdown) => ({
+    name: category.category.charAt(0).toUpperCase() + category.category.slice(1),
+    value: category.amount,
+    ecoScore: category.ecoScore
+  })) || [];
+
+  const firstEcoScore = data && data.length > 0 ? data[0].ecoScore : 76;
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-5 border border-neutral-200 mb-8">
+      <h2 className="text-lg font-semibold font-heading text-neutral-800 mb-4">Spending Category Breakdown</h2>
+      
+      {isLoading ? (
+        <div className="flex flex-col items-center space-y-6 py-8">
+          <Skeleton className="w-64 h-64 rounded-full" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="flex items-center">
+                <Skeleton className="w-3 h-3 rounded-full mr-2" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+          {/* Larger Pie Chart */}
+          <div className="w-full md:w-1/2 h-80 relative">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={chartData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={120}
+                  dataKey="value"
+                  labelLine={false}
+                  label={renderCustomizedLabel}
+                >
+                  {chartData.map((entry: ChartDataItem, index: number) => (
+                    <Cell key={`cell-${index}`} fill={getCategoryColor(entry.name)} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+                <Legend 
+                  layout="horizontal" 
+                  verticalAlign="bottom" 
+                  align="center"
+                  formatter={(value) => (
+                    <span className="text-sm font-medium">{value}</span>
+                  )}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            
+            {/* Center text */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+              <span className="text-sm text-neutral-700 font-medium">Total Impact</span>
+              <span className="text-2xl font-bold text-primary">{firstEcoScore}/100</span>
+            </div>
+          </div>
+          
+          {/* Category breakdown details */}
+          <div className="w-full md:w-1/2">
+            <h3 className="text-md font-semibold text-neutral-800 mb-3">Category Details</h3>
+            <div className="space-y-4">
+              {data?.map((category: CategoryBreakdown, index: number) => (
+                <div key={index} className="p-3 border border-neutral-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center">
+                      <div 
+                        className="w-4 h-4 rounded-full mr-2" 
+                        style={{ backgroundColor: getCategoryColor(category.category) }}
+                      ></div>
+                      <span className="text-sm font-medium capitalize">{category.category}</span>
+                    </div>
+                    <span className="text-sm font-bold">${category.amount.toFixed(2)}</span>
+                  </div>
+                  
+                  <div className="bg-neutral-100 h-2 rounded-full w-full mt-1">
+                    <div 
+                      className="h-2 rounded-full" 
+                      style={{ 
+                        width: `${category.ecoScore}%`, 
+                        backgroundColor: getCategoryColor(category.category) 
+                      }}
+                    ></div>
+                  </div>
+                  
+                  <div className="flex justify-between mt-1 text-xs text-neutral-600">
+                    <span>Eco Impact:</span>
+                    <div className="flex items-center">
+                      <Leaf className="h-3 w-3 mr-1 text-primary" />
+                      <span>{category.ecoScore}/100</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              {(!data || data.length === 0) && (
+                <div className="p-4 bg-neutral-50 rounded-lg text-center text-neutral-600">
+                  No spending data available. Upload a CSV to see your category breakdown.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

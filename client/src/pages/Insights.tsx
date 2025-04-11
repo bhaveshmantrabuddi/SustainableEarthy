@@ -1,5 +1,5 @@
 import SustainabilityTrendsSection from "@/components/dashboard/SustainabilityTrendsSection";
-import CategoryBreakdownSection from "@/components/dashboard/CategoryBreakdownSection";
+import SpendingCategoryPieChart from "@/components/dashboard/SpendingCategoryPieChart";
 import SustainabilityScoreSection from "@/components/dashboard/SustainabilityScoreSection";
 
 export default function Insights() {
@@ -14,14 +14,12 @@ export default function Insights() {
       {/* Sustainability scores */}
       <SustainabilityScoreSection />
 
-      {/* Sustainability trends and category breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="lg:col-span-2">
-          <SustainabilityTrendsSection />
-        </div>
-        <div className="lg:col-span-1">
-          <CategoryBreakdownSection />
-        </div>
+      {/* Category breakdown pie chart - New dedicated section */}
+      <SpendingCategoryPieChart />
+
+      {/* Sustainability trends section */}
+      <div className="mb-8">
+        <SustainabilityTrendsSection />
       </div>
     </div>
   );
