@@ -104,6 +104,16 @@ function Routes() {
         )}
       </Route>
       
+      <Route path="/eco-search">
+        {user ? (
+          <AuthenticatedLayout>
+            <EcoSearch />
+          </AuthenticatedLayout>
+        ) : (
+          <RedirectToAuth />
+        )}
+      </Route>
+      
       <Route>
         <NotFound />
       </Route>

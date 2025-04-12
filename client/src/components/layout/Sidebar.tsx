@@ -15,6 +15,7 @@ export default function Sidebar() {
     { path: "/transactions", label: "Transactions", icon: "ri-history-line" },
     { path: "/insights", label: "Insights", icon: "ri-line-chart-line" },
     { path: "/recommendations", label: "Recommendations", icon: "ri-compass-3-line" },
+    { path: "/eco-search", label: "Eco Search", icon: "ri-search-line" },
     { path: "/settings", label: "Settings", icon: "ri-settings-4-line" },
   ];
 
