@@ -41,7 +41,12 @@ const ScoreCard = ({
       )}
     </div>
     <div className="mt-3 eco-score">
-      <div className={`eco-score-fill ${color}`} style={{ width: `${percentage}%` }}></div>
+      <div 
+        className={`eco-score-fill ${
+          title === "Water Usage" ? color : "bg-green-500"
+        }`} 
+        style={{ width: `${percentage}%` }}
+      ></div>
     </div>
     {info && <div className="mt-2 text-xs text-neutral-600">{info}</div>}
   </div>
@@ -98,8 +103,8 @@ export default function SustainabilityScoreSection() {
           trend={{ value: 4, isPositive: true }}
           percentage={data.overallScore}
           info="Good - Top 25% of users"
-          icon={<Leaf className="text-7xl text-primary absolute -top-2 -right-2" />}
-          color="text-primary"
+          icon={<Leaf className="text-7xl text-green-500 absolute -top-2 -right-2" />}
+          color="text-green-600"
         />
         
         {/* Carbon Footprint Card */}
@@ -109,8 +114,8 @@ export default function SustainabilityScoreSection() {
           unit="kg CO₂"
           percentage={65}
           info="12% below average"
-          icon={<Footprints className="text-7xl text-secondary absolute -top-2 -right-2" />}
-          color="text-secondary"
+          icon={<Footprints className="text-7xl text-green-500 absolute -top-2 -right-2" />}
+          color="text-green-600"
         />
         
         {/* Sustainable Purchases Card */}
@@ -120,8 +125,8 @@ export default function SustainabilityScoreSection() {
           unit="%"
           percentage={data.sustainablePurchases}
           info="of all transactions"
-          icon={<ShoppingBag className="text-7xl text-accent absolute -top-2 -right-2" />}
-          color="text-accent"
+          icon={<ShoppingBag className="text-7xl text-green-500 absolute -top-2 -right-2" />}
+          color="text-green-600"
         />
         
         {/* Water Usage Card */}
@@ -131,8 +136,8 @@ export default function SustainabilityScoreSection() {
           unit="kL"
           percentage={45}
           info="Good - 20% below average"
-          icon={<Droplets className="text-7xl text-primary-light absolute -top-2 -right-2" />}
-          color="text-primary-light"
+          icon={<Droplets className="text-7xl text-green-500 absolute -top-2 -right-2" />}
+          color="text-green-600"
         />
       </div>
     </div>

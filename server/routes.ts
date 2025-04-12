@@ -190,10 +190,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Calculate cashback amount based on eco-score
-      // Higher score = higher cashback percentage
-      const baseAmount = 50; // $50 base amount
-      const cashbackPercentage = Math.min(score.overallScore / 100, 0.05); // Max 5% cashback
-      const amount = baseAmount * (1 + cashbackPercentage);
+      // Higher score = higher cashback percentage with more tiers
+      const baseAmount = 25; // $25 base amount
+      
+      // More dynamic cashback calculation based on eco-score
+      let cashbackMultiplier = 1.0;
+      if (score.overallScore >= 80) {
+        // Excellent eco-score (80-100) - highest rewards
+        cashbackMultiplier = 3.0;
+      } else if (score.overallScore >= 60) {
+        // Good eco-score (60-79) - medium rewards
+        cashbackMultiplier = 2.0; 
+      } else if (score.overallScore >= 40) {
+        // Average eco-score (40-59) - modest rewards
+        cashbackMultiplier = 1.5;
+      }
+      
+      // Calculate final amount
+      const amount = baseAmount * cashbackMultiplier;
 
       // Create cashback reward
       const reward = await storage.createCashbackReward({

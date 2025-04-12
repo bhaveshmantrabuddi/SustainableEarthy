@@ -84,7 +84,9 @@ export default function CashbackCard({
             {redeemed ? 'Redeemed' : 'Available'}
           </Badge>
         </CardTitle>
-        <CardDescription>Eco-Score: {ecoScore}/100</CardDescription>
+        <CardDescription>
+          Eco-Score: <span className="text-green-600 font-medium">{ecoScore}/100</span>
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="text-3xl font-bold mb-2">${amount.toFixed(2)}</div>
@@ -93,9 +95,29 @@ export default function CashbackCard({
         {/* Progress bar to visually show eco-score */}
         <div className="w-full bg-muted rounded-full h-2.5 mt-4">
           <div 
-            className="bg-primary h-2.5 rounded-full" 
+            className={`h-2.5 rounded-full ${
+              ecoScore >= 80 ? 'bg-green-500' :
+              ecoScore >= 60 ? 'bg-green-400' :
+              ecoScore >= 40 ? 'bg-green-300' : 'bg-yellow-300'
+            }`}
             style={{ width: `${ecoScore}%` }}
           ></div>
+        </div>
+        
+        {/* Explanation of reward tier */}
+        <div className="mt-2 text-xs text-muted-foreground">
+          {ecoScore >= 80 && (
+            <span className="text-green-600">Excellent eco-score! 3× reward multiplier applied.</span>
+          )}
+          {ecoScore >= 60 && ecoScore < 80 && (
+            <span className="text-green-600">Good eco-score! 2× reward multiplier applied.</span>
+          )}
+          {ecoScore >= 40 && ecoScore < 60 && (
+            <span className="text-green-600">Average eco-score. 1.5× reward multiplier applied.</span>
+          )}
+          {ecoScore < 40 && (
+            <span>Basic eco-score. Standard reward rate applied.</span>
+          )}
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
