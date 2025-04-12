@@ -1,4 +1,4 @@
-import { useState } from "react";
+
 import { Menu, Bell, HelpCircle, User, LogOut } from "lucide-react";
 import { Leaf } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export default function Header() {
-  const [searchQuery, setSearchQuery] = useState("");
+  // Removed search query state
   const { user, logoutMutation } = useAuth();
   
   const handleToggleSidebar = () => {
@@ -56,21 +56,8 @@ export default function Header() {
             </div>
           </div>
           
-          {/* Search bar (desktop) */}
-          <div className="hidden md:flex items-center flex-1 mx-8">
-            <div className="relative w-full max-w-md">
-              <input 
-                type="text" 
-                placeholder="Search transactions..." 
-                className="w-full py-2 pl-10 pr-4 rounded-lg bg-neutral-100 focus:bg-white border border-transparent focus:border-neutral-300 focus:outline-none focus:ring-0"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <svg className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-              </svg>
-            </div>
-          </div>
+          {/* Empty space for layout balance */}
+          <div className="hidden md:flex flex-1"></div>
           
           {/* Action buttons */}
           <div className="flex items-center">
