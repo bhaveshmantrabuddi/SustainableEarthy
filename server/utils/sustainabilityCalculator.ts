@@ -100,6 +100,7 @@ export function processTransactions(csvRows: CSVRow[], userId: number): {
   let totalCarbonFootprint = 0;
   let sustainablePurchasesCount = 0;
   let totalWaterUsage = 0;
+  let nonTransferTransactionCount = 0;
   
   // Process each transaction
   for (const row of csvRows) {
@@ -117,6 +118,9 @@ export function processTransactions(csvRows: CSVRow[], userId: number): {
     // Determine if alternatives should be suggested
     const hasAlts = hasAlternatives(row.merchant, row.category, ecoScore);
     
+    // Check if transaction is a transfer (skip for eco calculations but still store it)
+    const isTransfer = row.category.toLowerCase().includes('transfer');
+    
     // Create transaction
     const transaction: InsertTransaction = {
       date,
@@ -129,6 +133,21 @@ export function processTransactions(csvRows: CSVRow[], userId: number): {
     };
     
     transactions.push(transaction);
+    
+    // Skip environmental impact calculations for transfers
+    if (isTransfer) {
+      // Still add the transfer to the category breakdown but don't count it in eco calculations
+      const category = row.category.toLowerCase();
+      const categoryData = categoryMap.get(category) || { amount: 0, ecoScore: 0, count: 0 };
+      categoryData.amount += amount;
+      categoryData.ecoScore += 0; // Transfers have no eco score
+      categoryData.count += 1;
+      categoryMap.set(category, categoryData);
+      continue;
+    }
+    
+    // Count non-transfer transactions for average calculations
+    nonTransferTransactionCount++;
     
     // Update statistics
     totalEcoScore += ecoScore;
@@ -155,9 +174,10 @@ export function processTransactions(csvRows: CSVRow[], userId: number): {
     categoryMap.set(category, categoryData);
   }
   
-  // Calculate overall sustainability score
-  const overallScore = Math.round(totalEcoScore / transactions.length);
-  const sustainablePurchasesPercentage = Math.round((sustainablePurchasesCount / transactions.length) * 100);
+  // Calculate overall sustainability score - ensure we don't divide by zero
+  const validTransactionCount = nonTransferTransactionCount > 0 ? nonTransferTransactionCount : 1;
+  const overallScore = Math.round(totalEcoScore / validTransactionCount);
+  const sustainablePurchasesPercentage = Math.round((sustainablePurchasesCount / validTransactionCount) * 100);
   
   // Create sustainability score record
   const sustainabilityScore: InsertSustainabilityScore = {
