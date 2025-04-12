@@ -124,7 +124,7 @@ export default function CategoryBreakdownSection() {
                     endAngle={-270}
                     label
                   >
-                    {chartData.map((entry, index) => (
+                    {chartData.map((entry: ChartDataItem, index: number) => (
                       <Cell key={`cell-${index}`} fill={getCategoryColor(entry.name)} />
                     ))}
                   </Pie>
@@ -136,13 +136,15 @@ export default function CategoryBreakdownSection() {
               {/* Center text */}
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                 <span className="text-xs text-neutral-700 font-medium">Total Impact</span>
-                <span className="text-lg font-bold text-primary">{data?.[0]?.ecoScore || 76}/100</span>
+                <span className="text-lg font-bold text-primary">
+                  {data && data.length > 0 ? data[0].ecoScore : 76}/100
+                </span>
               </div>
             </div>
           </div>
           
           <div className="space-y-3">
-            {data?.map((category, index) => (
+            {data?.map((category: CategoryBreakdown, index: number) => (
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div 
