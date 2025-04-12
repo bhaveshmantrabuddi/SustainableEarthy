@@ -14,6 +14,7 @@ import {
 import { parseCSV, CSVParseError } from "./utils/csvParser";
 import { processTransactions } from "./utils/sustainabilityCalculator";
 import { ecoSearchHandler } from "./utils/ecoSearch";
+import plaidRouter from "./utils/plaidRoutes";
 import { ZodError } from "zod";
 import { setupAuth } from "./auth";
 
