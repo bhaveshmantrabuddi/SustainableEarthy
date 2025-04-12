@@ -13,7 +13,22 @@ import {
   type InsertCategoryBreakdown,
   recommendations,
   type Recommendation,
-  type InsertRecommendation
+  type InsertRecommendation,
+  cashbackRewards,
+  type CashbackReward,
+  type InsertCashbackReward,
+  investmentProfiles,
+  type InvestmentProfile,
+  type InsertInvestmentProfile,
+  investments,
+  type Investment,
+  type InsertInvestment,
+  greenInvestments,
+  type GreenInvestment,
+  type InsertGreenInvestment,
+  riskAssessments,
+  type RiskAssessment,
+  type InsertRiskAssessment
 } from "@shared/schema";
 
 export interface IStorage {
@@ -43,6 +58,36 @@ export interface IStorage {
   // Recommendation methods
   getRecommendations(userId?: number): Promise<Recommendation[]>;
   createRecommendation(recommendation: InsertRecommendation): Promise<Recommendation>;
+  
+  // Cashback rewards methods
+  getCashbackRewards(userId: number): Promise<CashbackReward[]>;
+  getCashbackRewardsByMonth(userId: number, month: string, year: number): Promise<CashbackReward | undefined>;
+  createCashbackReward(reward: InsertCashbackReward): Promise<CashbackReward>;
+  updateCashbackReward(id: number, updates: Partial<CashbackReward>): Promise<CashbackReward | undefined>;
+  getTotalCashbackAmount(userId: number): Promise<number>;
+  getUnredeemedCashbackAmount(userId: number): Promise<number>;
+  
+  // Investment profile methods
+  getInvestmentProfile(userId: number): Promise<InvestmentProfile | undefined>;
+  createInvestmentProfile(profile: InsertInvestmentProfile): Promise<InvestmentProfile>;
+  updateInvestmentProfile(userId: number, updates: Partial<InvestmentProfile>): Promise<InvestmentProfile | undefined>;
+  
+  // Investments methods
+  getInvestments(userId: number): Promise<Investment[]>;
+  getInvestmentById(id: number): Promise<Investment | undefined>;
+  createInvestment(investment: InsertInvestment): Promise<Investment>;
+  updateInvestment(id: number, updates: Partial<Investment>): Promise<Investment | undefined>;
+  getInvestmentsByType(userId: number, type: string): Promise<Investment[]>;
+  getTotalInvestmentValue(userId: number): Promise<number>;
+  
+  // Green investments methods
+  getGreenInvestments(riskLevel?: string): Promise<GreenInvestment[]>;
+  getGreenInvestmentById(id: number): Promise<GreenInvestment | undefined>;
+  createGreenInvestment(investment: InsertGreenInvestment): Promise<GreenInvestment>;
+  
+  // Risk assessment methods
+  getRiskAssessment(userId: number): Promise<RiskAssessment | undefined>;
+  createRiskAssessment(assessment: InsertRiskAssessment & { recommendedRiskLevel: string }): Promise<RiskAssessment>;
 }
 
 export class MemStorage implements IStorage {
