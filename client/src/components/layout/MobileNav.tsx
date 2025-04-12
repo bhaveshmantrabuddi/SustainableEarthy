@@ -8,8 +8,8 @@ export default function MobileNav() {
     { path: "/", label: "Dashboard", icon: "ri-dashboard-line" },
     { path: "/transactions", label: "Transactions", icon: "ri-history-line" },
     { path: "/insights", label: "Insights", icon: "ri-line-chart-line" },
-    { path: "/eco-search", label: "Search", icon: "ri-search-line" },
-    { path: "/settings", label: "Profile", icon: "ri-user-line" },
+    { path: "/rewards", label: "Rewards", icon: "ri-money-dollar-circle-line" },
+    { path: "/investments", label: "Invest", icon: "ri-funds-line" },
   ];
 
   return (

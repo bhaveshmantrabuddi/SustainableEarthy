@@ -8,6 +8,8 @@ import Transactions from "@/pages/Transactions";
 import Insights from "@/pages/Insights";
 import Recommendations from "@/pages/Recommendations";
 import EcoSearch from "@/pages/EcoSearch";
+import Rewards from "@/pages/Rewards";
+import Investments from "@/pages/Investments";
 import AuthPage from "@/pages/auth-page";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
@@ -108,6 +110,26 @@ function Routes() {
         {user ? (
           <AuthenticatedLayout>
             <EcoSearch />
+          </AuthenticatedLayout>
+        ) : (
+          <RedirectToAuth />
+        )}
+      </Route>
+      
+      <Route path="/rewards">
+        {user ? (
+          <AuthenticatedLayout>
+            <Rewards />
+          </AuthenticatedLayout>
+        ) : (
+          <RedirectToAuth />
+        )}
+      </Route>
+      
+      <Route path="/investments">
+        {user ? (
+          <AuthenticatedLayout>
+            <Investments />
           </AuthenticatedLayout>
         ) : (
           <RedirectToAuth />
