@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 
 // API key for Google Gemini
 const API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyDP5xs9wfpIj1xqh8ABXDzaarwXMapZIDA';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
 
 /**
  * Find environmentally sustainable alternatives for a product
