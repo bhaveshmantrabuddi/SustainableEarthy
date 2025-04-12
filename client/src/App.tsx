@@ -7,6 +7,7 @@ import Dashboard from "@/pages/Dashboard";
 import Transactions from "@/pages/Transactions";
 import Insights from "@/pages/Insights";
 import Recommendations from "@/pages/Recommendations";
+import EcoSearch from "@/pages/EcoSearch";
 import AuthPage from "@/pages/auth-page";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";

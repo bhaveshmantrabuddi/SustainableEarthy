@@ -8,6 +8,7 @@ import {
 } from "@shared/schema";
 import { parseCSV, CSVParseError } from "./utils/csvParser";
 import { processTransactions } from "./utils/sustainabilityCalculator";
+import { ecoSearchHandler } from "./utils/ecoSearch";
 import { ZodError } from "zod";
 import { setupAuth } from "./auth";
 
@@ -145,6 +146,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch recommendations" });
     }
   });
+
+  // Search for sustainable product alternatives
+  app.get("/api/eco-search", isAuthenticated, ecoSearchHandler);
 
   const httpServer = createServer(app);
   return httpServer;
