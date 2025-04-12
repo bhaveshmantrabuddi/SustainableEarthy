@@ -13,6 +13,7 @@ from storage import storage
 from auth import setup_auth, login_required
 from utils.csv_parser import parse_csv, CSVParseError
 from utils.sustainability_calculator import process_transactions
+from utils.eco_search import find_sustainable_alternative
 
 # Load environment variables
 load_dotenv()
@@ -191,6 +192,29 @@ def get_recommendations():
         recommendations = generate_recommendations(user_id)
     
     return jsonify(recommendations), 200
+
+@app.route("/api/eco-search", methods=["GET"])
+@login_required
+def eco_search():
+    """Search for environmentally sustainable product alternatives"""
+    user_id = request.cookies.get("user_id") or session.get("user_id")
+    
+    if not user_id:
+        return jsonify({"error": "User not authenticated"}), 401
+    
+    # Get search query from request parameters
+    product_query = request.args.get("query")
+    
+    if not product_query:
+        return jsonify({"error": "Search query is required"}), 400
+    
+    try:
+        # Use Gemini to find sustainable alternatives
+        result = find_sustainable_alternative(product_query)
+        return jsonify(result), 200
+    except Exception as e:
+        print(traceback.format_exc())
+        return jsonify({"error": f"Error searching for alternatives: {str(e)}"}), 500
 
 # Serve frontend static files
 @app.route("/", defaults={"path": ""})
