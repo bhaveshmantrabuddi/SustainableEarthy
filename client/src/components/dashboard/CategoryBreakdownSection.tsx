@@ -33,16 +33,22 @@ const getEcoScoreColor = (score: number) => {
 // Helper for determining color based on category
 const getCategoryColor = (category: string): string => {
   const colors: Record<string, string> = {
-    "groceries": "#2E7D32", // primary
-    "transportation": "#00695C", // secondary
-    "dining": "#FFC107", // accent
-    "shopping": "#E0E0E0", // neutral
-    "utilities": "#4CAF50",
-    "housing": "#00897B",
-    "health": "#FFCA28",
-    "education": "#1B5E20",
-    "travel": "#004D40",
-    "entertainment": "#FFA000",
+    "groceries": "#2E7D32", // green
+    "transportation": "#1976D2", // blue
+    "dining": "#FFA000", // amber
+    "shopping": "#D32F2F", // red
+    "utilities": "#7B1FA2", // purple
+    "housing": "#00796B", // teal
+    "health": "#F06292", // pink
+    "education": "#FFD54F", // yellow
+    "travel": "#FF5722", // deep orange
+    "entertainment": "#9C27B0", // purple
+    "food & drink": "#43A047", // green
+    "food and drink": "#43A047", // green
+    "recreation": "#673AB7", // deep purple
+    "payment": "#0097A7", // cyan
+    "transfer": "#FF9800", // orange
+    "shops": "#E91E63", // pink
   };
 
   // Find matching category (case-insensitive)
@@ -52,7 +58,7 @@ const getCategoryColor = (category: string): string => {
     }
   }
   
-  return "#E0E0E0"; // Default neutral
+  return "#607D8B"; // Blue grey as default
 };
 
 // Define types for category data
