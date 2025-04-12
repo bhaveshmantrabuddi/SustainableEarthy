@@ -81,8 +81,13 @@ export default function CategoryBreakdownSection() {
     queryKey: ['/api/category-breakdowns'],
   });
 
+  // Filter out transfers as they have no environmental impact
+  const filteredData = data?.filter((category: CategoryBreakdown) => 
+    !category.category.toLowerCase().includes('transfer')
+  );
+  
   // Prepare data for pie chart
-  const chartData: ChartDataItem[] = data?.map((category: CategoryBreakdown) => ({
+  const chartData: ChartDataItem[] = filteredData?.map((category: CategoryBreakdown) => ({
     name: category.category.charAt(0).toUpperCase() + category.category.slice(1),
     value: Math.max(category.amount, 0.01), // Ensure positive value for visibility
     displayAmount: `$${category.amount.toFixed(2)}` // For display purposes
@@ -143,14 +148,16 @@ export default function CategoryBreakdownSection() {
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                 <span className="text-xs text-neutral-700 font-medium">Total Impact</span>
                 <span className="text-lg font-bold text-primary">
-                  {data && data.length > 0 ? data[0].ecoScore : 76}/100
+                  {filteredData && filteredData.length > 0 ? 
+                    Math.round(filteredData.reduce((sum, item) => sum + item.ecoScore, 0) / filteredData.length) 
+                    : 0}/100
                 </span>
               </div>
             </div>
           </div>
           
           <div className="space-y-3">
-            {data?.map((category: CategoryBreakdown, index: number) => (
+            {filteredData?.map((category: CategoryBreakdown, index: number) => (
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div 

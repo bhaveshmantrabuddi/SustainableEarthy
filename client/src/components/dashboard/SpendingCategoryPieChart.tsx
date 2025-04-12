@@ -92,8 +92,13 @@ export default function SpendingCategoryPieChart() {
   // Prepare data for pie chart - consolidate duplicate categories
   const categoryMap = new Map<string, { amount: number, ecoScore: number }>();
   
-  // Group by category name (case insensitive)
+  // Group by category name (case insensitive) and exclude transfers
   data?.forEach((category: CategoryBreakdown) => {
+    // Skip transfer transactions as they have no environmental impact
+    if (category.category.toLowerCase().includes('transfer')) {
+      return;
+    }
+    
     const normalizedName = category.category.toLowerCase();
     if (categoryMap.has(normalizedName)) {
       const existing = categoryMap.get(normalizedName)!;
@@ -119,8 +124,14 @@ export default function SpendingCategoryPieChart() {
   // Log data to verify proportions
   console.log("Pie chart data:", chartData);
 
-  // Only calculate eco score if we have data
-  const firstEcoScore = hasData ? data[0].ecoScore : 0;
+  // Calculate average eco score from non-transfer categories
+  const nonTransferData = data?.filter((category: CategoryBreakdown) => 
+    !category.category.toLowerCase().includes('transfer')
+  ) || [];
+  
+  const avgEcoScore = nonTransferData.length > 0 
+    ? Math.round(nonTransferData.reduce((sum, item) => sum + item.ecoScore, 0) / nonTransferData.length)
+    : 0;
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-5 border border-neutral-200 mb-8">
@@ -196,7 +207,7 @@ export default function SpendingCategoryPieChart() {
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
               <div className="bg-white bg-opacity-80 rounded-full p-3 shadow-sm">
                 <span className="text-sm text-neutral-700 font-medium block">Total Impact</span>
-                <span className="text-2xl font-bold text-primary block">{firstEcoScore}/100</span>
+                <span className="text-2xl font-bold text-primary block">{avgEcoScore}/100</span>
               </div>
             </div>
           </div>
@@ -214,9 +225,9 @@ export default function SpendingCategoryPieChart() {
               >
                 <div className="flex items-center">
                   <h3 className="text-md font-semibold text-neutral-800">Category Details</h3>
-                  {data && data.length > 0 && (
+                  {nonTransferData.length > 0 && (
                     <span className="ml-2 text-xs bg-neutral-100 text-neutral-700 rounded-full px-2 py-0.5">
-                      {data.length} categories
+                      {nonTransferData.length} categories
                     </span>
                   )}
                 </div>
@@ -229,7 +240,7 @@ export default function SpendingCategoryPieChart() {
             
             <CollapsibleContent>
               <div className="space-y-4 p-4 pt-0 bg-neutral-50">
-                {data?.map((category: CategoryBreakdown, index: number) => (
+                {nonTransferData.map((category: CategoryBreakdown, index: number) => (
                   <div key={index} className="p-3 bg-white rounded-lg border border-neutral-200">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center">
@@ -262,9 +273,9 @@ export default function SpendingCategoryPieChart() {
                   </div>
                 ))}
                 
-                {(!data || data.length === 0) && (
+                {nonTransferData.length === 0 && (
                   <div className="p-4 bg-neutral-50 rounded-lg text-center text-neutral-600">
-                    No spending data available. Upload a CSV to see your category breakdown.
+                    No non-transfer spending data available. Upload a CSV with regular transactions to see your category breakdown.
                   </div>
                 )}
               </div>
