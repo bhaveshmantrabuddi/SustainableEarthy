@@ -4,7 +4,12 @@ import { storage } from "./storage";
 import { 
   csvUploadSchema, 
   insertTransactionSchema, 
-  insertSustainabilityScoreSchema 
+  insertSustainabilityScoreSchema,
+  insertCashbackRewardSchema,
+  insertInvestmentProfileSchema,
+  insertInvestmentSchema,
+  insertRiskAssessmentSchema,
+  insertGreenInvestmentSchema
 } from "@shared/schema";
 import { parseCSV, CSVParseError } from "./utils/csvParser";
 import { processTransactions } from "./utils/sustainabilityCalculator";
@@ -149,6 +154,355 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Search for sustainable product alternatives
   app.get("/api/eco-search", isAuthenticated, ecoSearchHandler);
+
+  // Calculate and get monthly cashback rewards
+  app.get("/api/cashback-rewards", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const rewards = await storage.getCashbackRewards(userId);
+      res.status(200).json(rewards);
+    } catch (error) {
+      console.error("Error fetching cashback rewards:", error);
+      res.status(500).json({ message: "Failed to fetch cashback rewards" });
+    }
+  });
+
+  // Calculate and store cashback reward for the month
+  app.post("/api/calculate-cashback", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const { month, year } = req.body;
+
+      if (!month || !year) {
+        return res.status(400).json({ message: "Month and year are required" });
+      }
+
+      // Check if we already calculated cashback for this month
+      const existingReward = await storage.getCashbackRewardsByMonth(userId, month, year);
+      if (existingReward) {
+        return res.status(200).json(existingReward);
+      }
+
+      // Get the latest sustainability score
+      const score = await storage.getLatestSustainabilityScore(userId);
+      if (!score) {
+        return res.status(404).json({ message: "No sustainability score found" });
+      }
+
+      // Calculate cashback amount based on eco-score
+      // Higher score = higher cashback percentage
+      const baseAmount = 50; // $50 base amount
+      const cashbackPercentage = Math.min(score.overallScore / 100, 0.05); // Max 5% cashback
+      const amount = baseAmount * (1 + cashbackPercentage);
+
+      // Create cashback reward
+      const reward = await storage.createCashbackReward({
+        userId,
+        month,
+        year,
+        ecoScore: score.overallScore,
+        amount,
+        redeemed: false,
+        invested: false,
+        date: new Date()
+      });
+
+      res.status(201).json(reward);
+    } catch (error) {
+      console.error("Error calculating cashback:", error);
+      res.status(500).json({ message: "Failed to calculate cashback" });
+    }
+  });
+
+  // Redeem cashback reward
+  app.post("/api/redeem-cashback/:id", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const rewardId = parseInt(req.params.id);
+
+      // Get the reward
+      // Direct map access doesn't work, we need to create a method in our storage interface
+      const rewards = await storage.getCashbackRewards(userId);
+      const reward = rewards.find(r => r.id === rewardId);
+      if (!reward) {
+        return res.status(404).json({ message: "Cashback reward not found" });
+      }
+
+      if (reward.redeemed) {
+        return res.status(400).json({ message: "Cashback reward already redeemed" });
+      }
+
+      // Update the reward
+      const updatedReward = await storage.updateCashbackReward(rewardId, { redeemed: true });
+      res.status(200).json(updatedReward);
+    } catch (error) {
+      console.error("Error redeeming cashback:", error);
+      res.status(500).json({ message: "Failed to redeem cashback" });
+    }
+  });
+
+  // Get total unredeemed cashback amount
+  app.get("/api/cashback-total", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const total = await storage.getUnredeemedCashbackAmount(userId);
+      res.status(200).json({ total });
+    } catch (error) {
+      console.error("Error fetching total cashback:", error);
+      res.status(500).json({ message: "Failed to fetch total cashback" });
+    }
+  });
+
+  // Risk assessment survey
+  app.post("/api/risk-assessment", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const validatedData = insertRiskAssessmentSchema.parse(req.body);
+
+      // Calculate recommended risk level based on survey answers
+      const { riskTolerance, environmentalPriority, investmentTimeframe } = validatedData;
+      let recommendedRiskLevel = "low";
+
+      // Simple algorithm to determine risk level based on risk tolerance, environmental priority and timeframe
+      const riskScore = riskTolerance * 0.5 + environmentalPriority * 0.2;
+      if (riskScore >= 7 && investmentTimeframe === "long_term") {
+        recommendedRiskLevel = "high";
+      } else if (riskScore >= 5 || investmentTimeframe === "medium_term") {
+        recommendedRiskLevel = "medium";
+      }
+
+      // Create or update risk assessment
+      const assessment = await storage.createRiskAssessment({
+        ...validatedData,
+        userId,
+        recommendedRiskLevel
+      });
+
+      res.status(201).json(assessment);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: `Validation error: ${error.message}` });
+      }
+      console.error("Error creating risk assessment:", error);
+      res.status(500).json({ message: "Failed to create risk assessment" });
+    }
+  });
+
+  // Get user's risk assessment
+  app.get("/api/risk-assessment", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const assessment = await storage.getRiskAssessment(userId);
+      
+      if (!assessment) {
+        return res.status(404).json({ message: "No risk assessment found" });
+      }
+      
+      res.status(200).json(assessment);
+    } catch (error) {
+      console.error("Error fetching risk assessment:", error);
+      res.status(500).json({ message: "Failed to fetch risk assessment" });
+    }
+  });
+
+  // Create investment profile
+  app.post("/api/investment-profile", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const validatedData = insertInvestmentProfileSchema.parse(req.body);
+      
+      // Check if user already has a profile
+      const existingProfile = await storage.getInvestmentProfile(userId);
+      if (existingProfile) {
+        return res.status(400).json({ message: "Investment profile already exists" });
+      }
+      
+      const profile = await storage.createInvestmentProfile({
+        ...validatedData,
+        userId
+      });
+      
+      res.status(201).json(profile);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: `Validation error: ${error.message}` });
+      }
+      console.error("Error creating investment profile:", error);
+      res.status(500).json({ message: "Failed to create investment profile" });
+    }
+  });
+
+  // Get user's investment profile
+  app.get("/api/investment-profile", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const profile = await storage.getInvestmentProfile(userId);
+      
+      if (!profile) {
+        return res.status(404).json({ message: "No investment profile found" });
+      }
+      
+      res.status(200).json(profile);
+    } catch (error) {
+      console.error("Error fetching investment profile:", error);
+      res.status(500).json({ message: "Failed to fetch investment profile" });
+    }
+  });
+
+  // Update investment profile
+  app.patch("/api/investment-profile", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const profile = await storage.getInvestmentProfile(userId);
+      
+      if (!profile) {
+        return res.status(404).json({ message: "No investment profile found" });
+      }
+      
+      const updatedProfile = await storage.updateInvestmentProfile(userId, req.body);
+      res.status(200).json(updatedProfile);
+    } catch (error) {
+      console.error("Error updating investment profile:", error);
+      res.status(500).json({ message: "Failed to update investment profile" });
+    }
+  });
+
+  // Get green investment opportunities
+  app.get("/api/green-investments", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { riskLevel } = req.query;
+      const investments = await storage.getGreenInvestments(riskLevel as string | undefined);
+      res.status(200).json(investments);
+    } catch (error) {
+      console.error("Error fetching green investments:", error);
+      res.status(500).json({ message: "Failed to fetch green investments" });
+    }
+  });
+
+  // Create green investment (for admin purposes)
+  app.post("/api/green-investments", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertGreenInvestmentSchema.parse(req.body);
+      const investment = await storage.createGreenInvestment(validatedData);
+      res.status(201).json(investment);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: `Validation error: ${error.message}` });
+      }
+      console.error("Error creating green investment:", error);
+      res.status(500).json({ message: "Failed to create green investment" });
+    }
+  });
+
+  // Make an investment
+  app.post("/api/investments", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const validatedData = insertInvestmentSchema.parse(req.body);
+      
+      // Ensure user has a profile
+      const profile = await storage.getInvestmentProfile(userId);
+      if (!profile) {
+        return res.status(400).json({ message: "Investment profile required before investing" });
+      }
+      
+      // Create the investment
+      const investment = await storage.createInvestment({
+        ...validatedData,
+        userId,
+        profileId: profile.id
+      });
+      
+      // Update profile's current value
+      const totalValue = await storage.getTotalInvestmentValue(userId);
+      await storage.updateInvestmentProfile(userId, { currentValue: totalValue });
+      
+      res.status(201).json(investment);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: `Validation error: ${error.message}` });
+      }
+      console.error("Error creating investment:", error);
+      res.status(500).json({ message: "Failed to create investment" });
+    }
+  });
+
+  // Get user's investments
+  app.get("/api/investments", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const { type } = req.query;
+      
+      let investments;
+      if (type) {
+        investments = await storage.getInvestmentsByType(userId, type as string);
+      } else {
+        investments = await storage.getInvestments(userId);
+      }
+      
+      res.status(200).json(investments);
+    } catch (error) {
+      console.error("Error fetching investments:", error);
+      res.status(500).json({ message: "Failed to fetch investments" });
+    }
+  });
+
+  // Get investment news and recommendations using Gemini API
+  app.get("/api/investment-news", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { riskLevel } = req.query;
+      
+      if (!process.env.GEMINI_API_KEY) {
+        return res.status(500).json({ message: "Gemini API key not configured" });
+      }
+      
+      const { GoogleGenerativeAI } = await import("google-generativeai");
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      
+      // Generate sustainable investment recommendations based on risk level
+      const riskLevelParam = riskLevel || "medium";
+      const prompt = `Provide 3 current investment opportunities in sustainable or environmentally-friendly companies or green bonds that match a ${riskLevelParam} risk profile. For each, include: 
+      1. Name of company/fund/bond 
+      2. Environmental sector (e.g., renewable energy, conservation) 
+      3. Current price range 
+      4. Risk level (low, medium, high) 
+      5. Potential annual return percentage 
+      6. Brief explanation of environmental impact
+      7. Recent news or developments affecting this investment
+      
+      Format as JSON with the following structure:
+      {
+        "investments": [
+          {
+            "name": "",
+            "sector": "",
+            "priceRange": "",
+            "riskLevel": "",
+            "returnPercentage": "",
+            "environmentalImpact": "",
+            "recentNews": ""
+          }
+        ]
+      }`;
+      
+      const result = await model.generateContent(prompt);
+      const response = result.response;
+      const textResult = response.text();
+      
+      // Parse the JSON from the text response
+      const jsonMatch = textResult.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        return res.status(500).json({ message: "Failed to parse investment recommendations" });
+      }
+      
+      const investmentData = JSON.parse(jsonMatch[0]);
+      res.status(200).json(investmentData);
+    } catch (error) {
+      console.error("Error fetching investment news:", error);
+      res.status(500).json({ message: "Failed to fetch investment recommendations" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

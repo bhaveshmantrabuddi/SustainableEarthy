@@ -96,12 +96,22 @@ export class MemStorage implements IStorage {
   private sustainabilityScores: Map<number, SustainabilityScore>;
   private categoryBreakdowns: Map<number, CategoryBreakdown>;
   private recommendations: Map<number, Recommendation>;
+  private cashbackRewards: Map<number, CashbackReward>;
+  private investmentProfiles: Map<number, InvestmentProfile>;
+  private investments: Map<number, Investment>;
+  private greenInvestments: Map<number, GreenInvestment>;
+  private riskAssessments: Map<number, RiskAssessment>;
   
   currentUserId: number;
   currentTransactionId: number;
   currentScoreId: number;
   currentBreakdownId: number;
   currentRecommendationId: number;
+  currentCashbackId: number;
+  currentInvestmentProfileId: number;
+  currentInvestmentId: number;
+  currentGreenInvestmentId: number;
+  currentRiskAssessmentId: number;
 
   constructor() {
     this.users = new Map();
@@ -109,12 +119,22 @@ export class MemStorage implements IStorage {
     this.sustainabilityScores = new Map();
     this.categoryBreakdowns = new Map();
     this.recommendations = new Map();
+    this.cashbackRewards = new Map();
+    this.investmentProfiles = new Map();
+    this.investments = new Map();
+    this.greenInvestments = new Map();
+    this.riskAssessments = new Map();
     
     this.currentUserId = 1;
     this.currentTransactionId = 1;
     this.currentScoreId = 1;
     this.currentBreakdownId = 1;
     this.currentRecommendationId = 1;
+    this.currentCashbackId = 1;
+    this.currentInvestmentProfileId = 1;
+    this.currentInvestmentId = 1;
+    this.currentGreenInvestmentId = 1;
+    this.currentRiskAssessmentId = 1;
     
     // No default users or data - each new account starts empty
   }
@@ -248,6 +268,166 @@ export class MemStorage implements IStorage {
     const recommendation: Recommendation = { ...insertRecommendation, id };
     this.recommendations.set(id, recommendation);
     return recommendation;
+  }
+  
+  // Cashback rewards methods
+  async getCashbackRewards(userId: number): Promise<CashbackReward[]> {
+    return Array.from(this.cashbackRewards.values()).filter(
+      (reward) => reward.userId === userId,
+    );
+  }
+  
+  async getCashbackRewardsByMonth(userId: number, month: string, year: number): Promise<CashbackReward | undefined> {
+    return Array.from(this.cashbackRewards.values()).find(
+      (reward) => reward.userId === userId && reward.month === month && reward.year === year,
+    );
+  }
+  
+  async createCashbackReward(insertReward: InsertCashbackReward): Promise<CashbackReward> {
+    const id = this.currentCashbackId++;
+    const reward: CashbackReward = { ...insertReward, id };
+    this.cashbackRewards.set(id, reward);
+    return reward;
+  }
+  
+  async updateCashbackReward(id: number, updates: Partial<CashbackReward>): Promise<CashbackReward | undefined> {
+    const reward = this.cashbackRewards.get(id);
+    if (!reward) return undefined;
+    
+    const updatedReward = { ...reward, ...updates };
+    this.cashbackRewards.set(id, updatedReward);
+    return updatedReward;
+  }
+  
+  async getTotalCashbackAmount(userId: number): Promise<number> {
+    const rewards = await this.getCashbackRewards(userId);
+    return rewards.reduce((sum, reward) => sum + reward.amount, 0);
+  }
+  
+  async getUnredeemedCashbackAmount(userId: number): Promise<number> {
+    const rewards = await this.getCashbackRewards(userId);
+    return rewards
+      .filter(reward => !reward.redeemed)
+      .reduce((sum, reward) => sum + reward.amount, 0);
+  }
+  
+  // Investment profile methods
+  async getInvestmentProfile(userId: number): Promise<InvestmentProfile | undefined> {
+    return Array.from(this.investmentProfiles.values()).find(
+      (profile) => profile.userId === userId,
+    );
+  }
+  
+  async createInvestmentProfile(insertProfile: InsertInvestmentProfile): Promise<InvestmentProfile> {
+    const id = this.currentInvestmentProfileId++;
+    const now = new Date();
+    const profile: InvestmentProfile = { 
+      ...insertProfile, 
+      id, 
+      createdAt: now, 
+      updatedAt: now 
+    };
+    this.investmentProfiles.set(id, profile);
+    return profile;
+  }
+  
+  async updateInvestmentProfile(userId: number, updates: Partial<InvestmentProfile>): Promise<InvestmentProfile | undefined> {
+    const profile = await this.getInvestmentProfile(userId);
+    if (!profile) return undefined;
+    
+    const updatedProfile = { 
+      ...profile, 
+      ...updates, 
+      updatedAt: new Date() 
+    };
+    this.investmentProfiles.set(profile.id, updatedProfile);
+    return updatedProfile;
+  }
+  
+  // Investments methods
+  async getInvestments(userId: number): Promise<Investment[]> {
+    return Array.from(this.investments.values()).filter(
+      (investment) => investment.userId === userId,
+    );
+  }
+  
+  async getInvestmentById(id: number): Promise<Investment | undefined> {
+    return this.investments.get(id);
+  }
+  
+  async createInvestment(insertInvestment: InsertInvestment): Promise<Investment> {
+    const id = this.currentInvestmentId++;
+    const now = new Date();
+    const investment: Investment = { 
+      ...insertInvestment, 
+      id, 
+      lastUpdated: now 
+    };
+    this.investments.set(id, investment);
+    return investment;
+  }
+  
+  async updateInvestment(id: number, updates: Partial<Investment>): Promise<Investment | undefined> {
+    const investment = this.investments.get(id);
+    if (!investment) return undefined;
+    
+    const updatedInvestment = { 
+      ...investment, 
+      ...updates, 
+      lastUpdated: new Date() 
+    };
+    this.investments.set(id, updatedInvestment);
+    return updatedInvestment;
+  }
+  
+  async getInvestmentsByType(userId: number, type: string): Promise<Investment[]> {
+    return Array.from(this.investments.values()).filter(
+      (investment) => investment.userId === userId && investment.type === type,
+    );
+  }
+  
+  async getTotalInvestmentValue(userId: number): Promise<number> {
+    const investments = await this.getInvestments(userId);
+    return investments.reduce((sum, investment) => sum + investment.currentValue, 0);
+  }
+  
+  // Green investments methods
+  async getGreenInvestments(riskLevel?: string): Promise<GreenInvestment[]> {
+    if (riskLevel) {
+      return Array.from(this.greenInvestments.values()).filter(
+        (investment) => investment.riskLevel === riskLevel,
+      );
+    }
+    return Array.from(this.greenInvestments.values());
+  }
+  
+  async getGreenInvestmentById(id: number): Promise<GreenInvestment | undefined> {
+    return this.greenInvestments.get(id);
+  }
+  
+  async createGreenInvestment(insertInvestment: InsertGreenInvestment): Promise<GreenInvestment> {
+    const id = this.currentGreenInvestmentId++;
+    const investment: GreenInvestment = { ...insertInvestment, id };
+    this.greenInvestments.set(id, investment);
+    return investment;
+  }
+  
+  // Risk assessment methods
+  async getRiskAssessment(userId: number): Promise<RiskAssessment | undefined> {
+    return Array.from(this.riskAssessments.values()).find(
+      (assessment) => assessment.userId === userId,
+    );
+  }
+  
+  async createRiskAssessment(insertAssessment: InsertRiskAssessment & { recommendedRiskLevel: string }): Promise<RiskAssessment> {
+    const id = this.currentRiskAssessmentId++;
+    const assessment: RiskAssessment = { 
+      ...insertAssessment,
+      id, 
+      date: new Date()
+    };
+    this.riskAssessments.set(id, assessment);
+    return assessment;
   }
 }
 
