@@ -14,10 +14,26 @@ import AuthPage from "@/pages/auth-page";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import MobileNav from "@/components/layout/MobileNav";
-import { AuthProvider } from "@/hooks/use-auth";
-import { ProtectedRoute } from "@/lib/protected-route";
-import { useAuth } from "@/hooks/use-auth";
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
+
+// Define the route config to make it easier to manage
+interface RouteConfig {
+  path: string;
+  component: React.ComponentType;
+  protected?: boolean;
+}
+
+const routes: RouteConfig[] = [
+  { path: "/", component: Dashboard, protected: true },
+  { path: "/transactions", component: Transactions, protected: true },
+  { path: "/insights", component: Insights, protected: true },
+  { path: "/recommendations", component: Recommendations, protected: true },
+  { path: "/eco-search", component: EcoSearch, protected: true },
+  { path: "/rewards", component: Rewards, protected: true },
+  { path: "/investments", component: Investments, protected: true },
+  { path: "/auth", component: AuthPage }
+];
 
 function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -49,6 +65,20 @@ function RedirectToHome() {
   return null;
 }
 
+function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
+  const { user } = useAuth();
+  
+  if (!user) {
+    return <RedirectToAuth />;
+  }
+  
+  return (
+    <AuthenticatedLayout>
+      <Component />
+    </AuthenticatedLayout>
+  );
+}
+
 function Routes() {
   const { user, isLoading } = useAuth();
   
@@ -62,79 +92,17 @@ function Routes() {
   
   return (
     <Switch>
-      <Route path="/auth">
-        {user ? <RedirectToHome /> : <AuthPage />}
-      </Route>
-      
-      <Route path="/">
-        {user ? (
-          <AuthenticatedLayout>
-            <Dashboard />
-          </AuthenticatedLayout>
-        ) : (
-          <RedirectToAuth />
-        )}
-      </Route>
-      
-      <Route path="/transactions">
-        {user ? (
-          <AuthenticatedLayout>
-            <Transactions />
-          </AuthenticatedLayout>
-        ) : (
-          <RedirectToAuth />
-        )}
-      </Route>
-      
-      <Route path="/insights">
-        {user ? (
-          <AuthenticatedLayout>
-            <Insights />
-          </AuthenticatedLayout>
-        ) : (
-          <RedirectToAuth />
-        )}
-      </Route>
-      
-      <Route path="/recommendations">
-        {user ? (
-          <AuthenticatedLayout>
-            <Recommendations />
-          </AuthenticatedLayout>
-        ) : (
-          <RedirectToAuth />
-        )}
-      </Route>
-      
-      <Route path="/eco-search">
-        {user ? (
-          <AuthenticatedLayout>
-            <EcoSearch />
-          </AuthenticatedLayout>
-        ) : (
-          <RedirectToAuth />
-        )}
-      </Route>
-      
-      <Route path="/rewards">
-        {user ? (
-          <AuthenticatedLayout>
-            <Rewards />
-          </AuthenticatedLayout>
-        ) : (
-          <RedirectToAuth />
-        )}
-      </Route>
-      
-      <Route path="/investments">
-        {user ? (
-          <AuthenticatedLayout>
-            <Investments />
-          </AuthenticatedLayout>
-        ) : (
-          <RedirectToAuth />
-        )}
-      </Route>
+      {routes.map(({ path, component: Component, protected: isProtected }) => (
+        <Route key={path} path={path}>
+          {path === "/auth" ? (
+            user ? <RedirectToHome /> : <Component />
+          ) : isProtected ? (
+            <ProtectedRoute component={Component} />
+          ) : (
+            <Component />
+          )}
+        </Route>
+      ))}
       
       <Route>
         <NotFound />
