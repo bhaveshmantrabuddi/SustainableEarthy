@@ -519,6 +519,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Register Plaid routes
+  app.use('/api/plaid', plaidRouter);
+
+  // Check for Plaid environment variables
+  if (!process.env.PLAID_CLIENT_ID || !process.env.PLAID_SECRET) {
+    console.warn("Warning: Plaid credentials not configured. Bank connection feature will not work properly.");
+  }
+
   const httpServer = createServer(app);
   return httpServer;
 }

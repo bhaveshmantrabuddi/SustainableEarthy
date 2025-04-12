@@ -4,6 +4,8 @@ import SustainabilityTrendsSection from "@/components/dashboard/SustainabilityTr
 import SpendingCategoryPieChart from "@/components/dashboard/SpendingCategoryPieChart";
 import TransactionHistorySection from "@/components/transactions/TransactionHistorySection";
 import RecommendationsSection from "@/components/recommendations/RecommendationsSection";
+import PlaidLinkSection from "@/components/plaid/PlaidLinkSection";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Dashboard() {
   return (
@@ -14,8 +16,22 @@ export default function Dashboard() {
         <p className="text-neutral-600 mt-1">Track the environmental impact of your spending</p>
       </div>
 
-      {/* Upload section */}
-      <DataUploadSection />
+      {/* Data Import Methods */}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4">Import Your Transactions</h2>
+        <Tabs defaultValue="csv" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="csv">CSV Upload</TabsTrigger>
+            <TabsTrigger value="bank">Bank Connection</TabsTrigger>
+          </TabsList>
+          <TabsContent value="csv">
+            <DataUploadSection />
+          </TabsContent>
+          <TabsContent value="bank">
+            <PlaidLinkSection />
+          </TabsContent>
+        </Tabs>
+      </div>
 
       {/* Sustainability scores */}
       <SustainabilityScoreSection />
