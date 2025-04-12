@@ -1,8 +1,8 @@
-import { PlaidApi, Configuration, PlaidEnvironments } from 'plaid';
+import { Configuration, PlaidApi, PlaidEnvironments } from 'plaid';
 
-// Plaid client configuration
+// Configure Plaid client based on environment
 const configuration = new Configuration({
-  basePath: PlaidEnvironments.sandbox,
+  basePath: PlaidEnvironments[process.env.PLAID_ENV as keyof typeof PlaidEnvironments || 'sandbox'],
   baseOptions: {
     headers: {
       'PLAID-CLIENT-ID': process.env.PLAID_CLIENT_ID,
@@ -13,7 +13,7 @@ const configuration = new Configuration({
 
 export const plaidClient = new PlaidApi(configuration);
 
-// Store access token in memory - in production, this should be stored securely in a database
+// Store the current access token and item ID
 export let accessToken: string | null = null;
 export let itemId: string | null = null;
 
