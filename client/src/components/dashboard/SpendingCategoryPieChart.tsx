@@ -107,9 +107,12 @@ export default function SpendingCategoryPieChart() {
   // Convert map back to array for chart
   const chartData: ChartDataItem[] = Array.from(categoryMap).map(([category, values]) => ({
     name: category.charAt(0).toUpperCase() + category.slice(1),
-    value: values.amount,
+    value: Math.max(values.amount, 0.01), // Ensure positive value for visibility (in case of zero)
     ecoScore: values.ecoScore
   })) || [];
+  
+  // Log data to verify proportions
+  console.log("Pie chart data:", chartData);
 
   // Only calculate eco score if we have data
   const firstEcoScore = hasData ? data[0].ecoScore : 0;

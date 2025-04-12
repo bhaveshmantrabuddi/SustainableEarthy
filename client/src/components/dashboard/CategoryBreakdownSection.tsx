@@ -5,9 +5,23 @@ import {
   Pie, 
   Cell, 
   ResponsiveContainer, 
-  Legend 
+  Legend,
+  Tooltip
 } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
+
+// Custom tooltip for the pie chart
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-2 border border-neutral-200 shadow-sm rounded-md text-sm">
+        <p className="font-medium">{payload[0].name}</p>
+        <p>{payload[0].payload.displayAmount}</p>
+      </div>
+    );
+  }
+  return null;
+};
 
 // Helper for determining color based on eco score
 const getEcoScoreColor = (score: number) => {
@@ -41,16 +55,35 @@ const getCategoryColor = (category: string): string => {
   return "#E0E0E0"; // Default neutral
 };
 
+// Define types for category data
+interface CategoryBreakdown {
+  userId: number;
+  category: string;
+  amount: number;
+  ecoScore: number;
+  id: number;
+}
+
+interface ChartDataItem {
+  name: string;
+  value: number;
+  displayAmount: string;
+}
+
 export default function CategoryBreakdownSection() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<CategoryBreakdown[]>({
     queryKey: ['/api/category-breakdowns'],
   });
 
   // Prepare data for pie chart
-  const chartData = data?.map((category) => ({
+  const chartData: ChartDataItem[] = data?.map((category: CategoryBreakdown) => ({
     name: category.category.charAt(0).toUpperCase() + category.category.slice(1),
-    value: category.amount
+    value: Math.max(category.amount, 0.01), // Ensure positive value for visibility
+    displayAmount: `$${category.amount.toFixed(2)}` // For display purposes
   })) || [];
+  
+  // Log data to verify proportions
+  console.log("Category breakdown data:", chartData);
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-5 border border-neutral-200 h-full">
@@ -95,6 +128,7 @@ export default function CategoryBreakdownSection() {
                       <Cell key={`cell-${index}`} fill={getCategoryColor(entry.name)} />
                     ))}
                   </Pie>
+                  <Tooltip content={<CustomTooltip />} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
