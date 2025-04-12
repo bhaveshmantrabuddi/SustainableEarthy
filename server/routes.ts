@@ -456,7 +456,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Gemini API key not configured" });
       }
       
-      const { GoogleGenerativeAI } = await import("google-generativeai");
+      const { GoogleGenerativeAI } = await import("@google/generative-ai");
       const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
       const model = genAI.getGenerativeModel({ model: "gemini-pro" });
       
