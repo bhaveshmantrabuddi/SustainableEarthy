@@ -1,39 +1,344 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Plaid Integration</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Investment Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+            --primary-color: #28a745;
+            --primary-hover: #218838;
+            --bg-light: #f8f9fa;
+            --text-light: #212529;
+            --card-light: #ffffff;
+            --form-text: #212529;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #2ecc71;
+            --primary-hover: #27ae60;
+            --bg-light: #212529;
+            --text-light: #f8f9fa;
+            --card-light: #343a40;
+            --form-text: #ffffff;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
+            background-color: var(--bg-light);
+            color: var(--text-light);
+            transition: all 0.3s ease;
         }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: green;
-            color: white;
+
+        .card {
+            background-color: var(--card-light);
             border: none;
-            border-radius: 4px;
-            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            color: var(--form-text);
         }
-        #status {
-            margin-top: 20px;
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+        }
+
+        .theme-switch {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+        }
+
+        .portfolio-item {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background-color: var(--card-light);
+            color: var(--form-text);
+        }
+
+        .positive-roi {
+            color: #2ecc71 !important;
+        }
+
+        .negative-roi {
+            color: #e74c3c !important;
+        }
+
+        [data-theme="dark"] .form-label {
+            color: var(--form-text);
+        }
+
+        [data-theme="dark"] .card-title {
+            color: var(--form-text);
+        }
+
+        [data-theme="dark"] .form-control {
+            background-color: var(--card-light);
+            border-color: #495057;
+            color: var(--form-text);
+        }
+
+        [data-theme="dark"] .form-control:focus {
+            background-color: var(--card-light);
+            border-color: var(--primary-color);
+            color: var(--form-text);
+        }
+
+        [data-theme="dark"] .form-control::placeholder {
+            color: #6c757d;
+        }
+
+        .chart-container {
+            position: relative;
+            margin: 20px 0;
+            height: 300px;
+        }
+
+        [data-theme="dark"] .chart-container {
+            background-color: var(--card-light);
+            border-radius: 0.5rem;
+            padding: 1rem;
         }
     </style>
 </head>
 <body>
-    <h1>Bank Connection</h1>
-    <button id="link-button">Link Bank Account</button>
-    <div id="status"></div>
+    <div class="container py-5">
+        <div class="theme-switch">
+            <button class="btn btn-outline-secondary" onclick="toggleTheme()">
+                <span id="theme-icon">🌙</span>
+            </button>
+        </div>
 
-    <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
-    <script src="/static/script.js"></script>
+        <h1 class="text-center mb-4">Stock Investment Tracker</h1>
+
+        <div class="row">
+            <div class="col-md-6 mx-auto">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title mb-0">Portfolio Distribution</h5>
+                            <h6 class="mb-0" id="totalBalance">Total: $0.00</h6>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="portfolioChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Buy Stock</h5>
+                        <form id="buyStockForm">
+                            <div class="mb-3">
+                                <label for="symbol" class="form-label">Stock Symbol</label>
+                                <input type="text" class="form-control" id="symbol" placeholder="e.g., AAPL" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="shares" class="form-label">Number of Shares</label>
+                                <input type="number" class="form-control" id="shares" min="1" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Buy Stock</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Your Portfolio</h5>
+                        <div id="portfolio"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle functionality
+        function toggleTheme() {
+            const html = document.documentElement;
+            const themeIcon = document.getElementById('theme-icon');
+            
+            if (html.getAttribute('data-theme') === 'dark') {
+                html.removeAttribute('data-theme');
+                themeIcon.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                themeIcon.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.getElementById('theme-icon').textContent = '☀️';
+        }
+
+        // Handle form submission
+        document.getElementById('buyStockForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const symbol = document.getElementById('symbol').value.toUpperCase();
+            const shares = document.getElementById('shares').value;
+
+            try {
+                const response = await fetch('/buy_stock', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ symbol, shares: parseInt(shares) }),
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert(`Successfully purchased ${shares} shares of ${symbol}`);
+                    loadPortfolio();
+                } else {
+                    alert('Failed to purchase stock. Please check the symbol and try again.');
+                }
+            } catch (error) {
+                alert('An error occurred while processing your request.');
+            }
+        });
+
+        let portfolioChart = null;
+
+        function updateChart(portfolioData) {
+            const ctx = document.getElementById('portfolioChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (portfolioChart) {
+                portfolioChart.destroy();
+            }
+
+            // Prepare data for the chart
+            const labels = [];
+            const data = [];
+            const backgroundColors = [
+                '#2ecc71', '#3498db', '#9b59b6', '#e74c3c', '#f1c40f',
+                '#1abc9c', '#e67e22', '#34495e', '#16a085', '#2980b9'
+            ];
+
+            let totalValue = 0;
+            const portfolioValues = [];
+
+            // Calculate total portfolio value and prepare data
+            for (const [symbol, roiInfo] of Object.entries(portfolioData)) {
+                totalValue += roiInfo.current_value;
+                portfolioValues.push({
+                    symbol,
+                    value: roiInfo.current_value,
+                    percentage: 0 // Will be calculated after total is known
+                });
+            }
+
+            // Calculate percentages and prepare chart data
+            portfolioValues.forEach(item => {
+                item.percentage = (item.value / totalValue) * 100;
+                labels.push(`${item.symbol} (${item.percentage.toFixed(1)}%)`);
+                data.push(item.value);
+            });
+
+            // Create the chart
+            portfolioChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: backgroundColors.slice(0, data.length),
+                        borderColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#343a40' : '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: document.documentElement.getAttribute('data-theme') === 'dark' ? '#ffffff' : '#212529'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const percentage = (value / totalValue * 100).toFixed(1);
+                                    return `$${value.toFixed(2)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Modify the loadPortfolio function to update the total balance
+        async function loadPortfolio() {
+            try {
+                const response = await fetch('/portfolio');
+                const portfolio = await response.json();
+                
+                const portfolioDiv = document.getElementById('portfolio');
+                portfolioDiv.innerHTML = '';
+
+                if (Object.keys(portfolio).length === 0) {
+                    portfolioDiv.innerHTML = '<p class="text-center">Your portfolio is empty.</p>';
+                    document.getElementById('totalBalance').textContent = 'Total: $0.00';
+                    return;
+                }
+
+                const portfolioData = {};
+                let totalPortfolioValue = 0;
+
+                for (const [symbol, data] of Object.entries(portfolio)) {
+                    const roiInfo = await fetch(`/roi/${symbol}`).then(res => res.json());
+                    if (roiInfo) {
+                        portfolioData[symbol] = roiInfo;
+                        totalPortfolioValue += roiInfo.current_value;
+                        const roiClass = roiInfo.roi_percentage >= 0 ? 'positive-roi' : 'negative-roi';
+                        const portfolioItem = document.createElement('div');
+                        portfolioItem.className = 'portfolio-item';
+                        portfolioItem.innerHTML = `
+                            <h6>${symbol}</h6>
+                            <p>Total Shares: ${roiInfo.total_shares}</p>
+                            <p>Total Investment: $${roiInfo.total_investment.toFixed(2)}</p>
+                            <p>Current Value: $${roiInfo.current_value.toFixed(2)}</p>
+                            <p class="${roiClass}">ROI: ${roiInfo.roi_percentage.toFixed(2)}%</p>
+                        `;
+                        portfolioDiv.appendChild(portfolioItem);
+                    }
+                }
+
+                // Update the total balance display
+                document.getElementById('totalBalance').textContent = `Total: $${totalPortfolioValue.toFixed(2)}`;
+
+                // Update the chart with the portfolio data
+                updateChart(portfolioData);
+            } catch (error) {
+                console.error('Error loading portfolio:', error);
+            }
+        }
+
+        // Modify the theme toggle to update chart colors
+        const originalToggleTheme = toggleTheme;
+        toggleTheme = function() {
+            originalToggleTheme();
+            loadPortfolio(); // Reload portfolio to update chart colors
+        };
+
+        // Load portfolio on page load
+        loadPortfolio();
+    </script>
 </body>
-</html>
-
+</html> 

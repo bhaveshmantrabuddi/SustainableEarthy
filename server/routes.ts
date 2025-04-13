@@ -17,6 +17,13 @@ import { ecoSearchHandler } from "./utils/ecoSearch";
 import plaidRouter from "./utils/plaidRoutes";
 import { ZodError } from "zod";
 import { setupAuth } from "./auth";
+import { 
+  initializeStockTracker, 
+  startStockTracker, 
+  buyStock,
+  getPortfolio,
+  getRoi
+} from "./utils/stockTracker";
 
 // Authentication middleware
 const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
