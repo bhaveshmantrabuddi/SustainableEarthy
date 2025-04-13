@@ -182,6 +182,19 @@
             document.getElementById('theme-icon').textContent = '☀️';
         }
 
+        // Get URL parameters to pre-fill form
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlSymbol = urlParams.get('symbol');
+        const urlShares = urlParams.get('shares');
+        
+        // Pre-fill form if URL parameters exist
+        if (urlSymbol) {
+            document.getElementById('symbol').value = urlSymbol;
+        }
+        if (urlShares) {
+            document.getElementById('shares').value = urlShares;
+        }
+
         // Handle form submission
         document.getElementById('buyStockForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -330,15 +343,10 @@
             }
         }
 
-        // Modify the theme toggle to update chart colors
-        const originalToggleTheme = toggleTheme;
-        toggleTheme = function() {
-            originalToggleTheme();
-            loadPortfolio(); // Reload portfolio to update chart colors
-        };
-
         // Load portfolio on page load
-        loadPortfolio();
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPortfolio();
+        });
     </script>
 </body>
-</html> 
+</html>

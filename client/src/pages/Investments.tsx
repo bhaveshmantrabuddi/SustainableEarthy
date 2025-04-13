@@ -242,14 +242,6 @@ export default function Investments() {
       queryClient.invalidateQueries({ queryKey: ['/api/investments'] });
       queryClient.invalidateQueries({ queryKey: ['/api/investment-profile'] });
       
-      // Start the stock tracker service if it's not already running
-      await fetch('/api/stock/start', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
       // Map green investment to stock symbol (using company name or a predefined mapping)
       // For simplicity, we'll derive a stock symbol from the investment name
       const symbolWords = greenInvestment.company || greenInvestment.name;
@@ -261,31 +253,17 @@ export default function Investments() {
         .toUpperCase()
         .slice(0, 4); // Limit to 4 characters
       
-      // Use stock tracker to buy stock
-      const stockResponse = await fetch('/api/stock/buy', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          symbol,
-          shares: Math.max(Math.floor(amount / 100), 1) // Convert amount to number of shares (1 share per $100, minimum 1)
-        }),
-      });
+      const shares = Math.max(Math.floor(amount / 100), 1); // Convert amount to number of shares (1 share per $100, minimum 1)
       
-      // Check if the stock purchase was successful
-      const stockData = await stockResponse.json();
-      
-      // Show a more detailed success message
+      // Show success message
       toast({
         title: 'Investment Created!',
-        description: stockData.success 
-          ? `Successfully invested $${amount} in ${greenInvestment.name} and purchased ${symbol} stock.`
-          : `Successfully invested $${amount} in ${greenInvestment.name}.`,
+        description: `Successfully invested $${amount} in ${greenInvestment.name}.`,
       });
       
-      // Open the stock tracker interface in a new window
-      window.open('http://localhost:5000', '_blank');
+      // Open the stock tracker interface in a new window with symbol and shares as URL parameters
+      // The Python server will be running on port 5000
+      window.open(`http://localhost:5000?symbol=${symbol}&shares=${shares}`, '_blank');
       
       // Reset investment amount
       setInvestmentAmount(null);

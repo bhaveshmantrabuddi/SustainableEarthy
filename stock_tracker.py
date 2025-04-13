@@ -3,7 +3,8 @@ import pandas as pd
 from datetime import datetime
 import json
 import os
-from flask import Flask, render_template, request, jsonify
+import sys
+from flask import Flask, render_template, request, jsonify, redirect
 
 app = Flask(__name__)
 tracker = None
@@ -76,7 +77,7 @@ class StockTracker:
             total_shares += purchase['shares']
 
         current_value = total_shares * current_price
-        roi = ((current_value - total_investment) / total_investment) * 100
+        roi = ((current_value - total_investment) / total_investment) * 100 if total_investment > 0 else 0
 
         return {
             'total_investment': total_investment,
@@ -87,6 +88,19 @@ class StockTracker:
 
 @app.route('/')
 def index():
+    # Check for URL parameters to pre-fill the form
+    symbol = request.args.get('symbol', '')
+    shares = request.args.get('shares', '')
+    
+    # If both parameters are provided, automatically buy the stock
+    if symbol and shares:
+        try:
+            shares_int = int(shares)
+            if tracker.buy_stock(symbol, shares_int):
+                return redirect('/')  # Redirect to main page after purchase
+        except ValueError:
+            pass  # If shares is not a valid integer, just show the form
+            
     return render_template('index.html')
 
 @app.route('/buy_stock', methods=['POST'])
@@ -112,4 +126,4 @@ def get_roi(symbol):
 
 if __name__ == '__main__':
     tracker = StockTracker()
-    app.run(debug=True) 
+    app.run(host='127.0.0.1', port=5000)
