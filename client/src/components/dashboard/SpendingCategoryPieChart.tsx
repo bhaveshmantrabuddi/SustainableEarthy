@@ -76,8 +76,8 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-// We'll use labelLine={true} and let the Recharts legend handle the category names
-// This way we don't need to render our own labels
+// Use labelLine={true} and let the Recharts legend handle the category names
+// This way we don't need to render labels
 const renderCustomizedLabel = () => null;
 
 export default function SpendingCategoryPieChart() {
