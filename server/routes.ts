@@ -680,6 +680,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.warn("Warning: Plaid credentials not configured. Bank connection feature will not work properly.");
   }
 
+  // Initialize and start the stock tracker
+  initializeStockTracker();
+  
+  // Stock tracker API routes
+  app.post('/api/stock/buy', isAuthenticated, buyStock);
+  app.get('/api/stock/portfolio', isAuthenticated, getPortfolio);
+  app.get('/api/stock/roi/:symbol', isAuthenticated, getRoi);
+  
+  // Register a route to trigger the stock tracker service start
+  app.post('/api/stock/start', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      await startStockTracker();
+      res.status(200).json({ message: 'Stock tracker service started' });
+    } catch (error) {
+      console.error('Error starting stock tracker:', error);
+      res.status(500).json({ message: 'Failed to start stock tracker service' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

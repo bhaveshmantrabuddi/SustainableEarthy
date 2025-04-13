@@ -331,9 +331,14 @@
         }
 
         // Modify the theme toggle to update chart colors
-        document.addEventListener('DOMContentLoaded', function() {
-            loadPortfolio();
-        });
+        const originalToggleTheme = toggleTheme;
+        toggleTheme = function() {
+            originalToggleTheme();
+            loadPortfolio(); // Reload portfolio to update chart colors
+        };
+
+        // Load portfolio on page load
+        loadPortfolio();
     </script>
 </body>
-</html>
+</html> 

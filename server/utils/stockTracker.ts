@@ -2,6 +2,11 @@ import { exec } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import { Request, Response } from 'express';
+import { fileURLToPath } from 'url';
+
+// Get the current module's directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Path to the Python script
 const pythonScript = path.join(__dirname, '../../stock_tracker.py');
