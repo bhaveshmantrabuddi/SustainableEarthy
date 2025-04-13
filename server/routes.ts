@@ -83,7 +83,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get sustainability score
+  // Get latest sustainability score
   app.get("/api/sustainability-score", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = req.user!.id;
@@ -97,6 +97,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching sustainability score:", error);
       res.status(500).json({ message: "Failed to fetch sustainability score" });
+    }
+  });
+  
+  // Get historical sustainability scores for trends
+  app.get("/api/sustainability-trends", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const timeRange = req.query.timeRange as string || 'Quarter'; // Month, Quarter, Year
+      
+      const scores = await storage.getSustainabilityScores(userId);
+      
+      if (!scores || scores.length === 0) {
+        return res.status(404).json({ message: "No sustainability scores found" });
+      }
+      
+      // Sort scores by date
+      const sortedScores = scores.sort((a, b) => 
+        new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
+      
+      // Filter based on time range
+      const now = new Date();
+      let filteredScores;
+      
+      switch(timeRange) {
+        case 'Month':
+          // Last 30 days
+          const monthCutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          filteredScores = sortedScores.filter(score => new Date(score.date) >= monthCutoff);
+          break;
+        case 'Year':
+          // Last 365 days
+          const yearCutoff = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+          filteredScores = sortedScores.filter(score => new Date(score.date) >= yearCutoff);
+          break;
+        case 'Quarter':
+        default:
+          // Last 90 days
+          const quarterCutoff = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+          filteredScores = sortedScores.filter(score => new Date(score.date) >= quarterCutoff);
+          break;
+      }
+      
+      // Format the data for the frontend
+      const trendData = filteredScores.map(score => {
+        const date = new Date(score.date);
+        return {
+          date: date.toISOString(),
+          month: date.toLocaleString('default', { month: 'short' }),
+          day: date.getDate(),
+          ecoScore: score.overallScore,
+          carbonFootprint: score.carbonFootprint,
+          sustainablePurchases: score.sustainablePurchases,
+          waterUsage: score.waterUsage
+        };
+      });
+      
+      res.status(200).json(trendData);
+    } catch (error) {
+      console.error("Error fetching sustainability trends:", error);
+      res.status(500).json({ message: "Failed to fetch sustainability trends" });
     }
   });
   
