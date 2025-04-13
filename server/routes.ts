@@ -112,8 +112,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const latestScore = await storage.getLatestSustainabilityScore(userId);
       
       if (!latestScore) {
-        console.log("No sustainability score found for user");
-        return res.status(404).json({ message: "No sustainability scores found" });
+        console.log("No sustainability score found for user, checking if there are transactions");
+        
+        // Get transactions to generate a score if needed
+        const transactions = await storage.getTransactions(userId);
+        
+        if (!transactions || transactions.length === 0) {
+          console.log("No transactions found, returning empty data");
+          return res.status(200).json([]); // Return empty array instead of 404
+        }
+        
+        // Calculate a basic sustainability score from the transactions
+        let totalEcoScore = 0;
+        let transactionsCount = 0;
+        
+        // Only count non-transfer transactions
+        transactions.forEach(transaction => {
+          // Skip transfers as they have no environmental impact
+          if (transaction.category.toLowerCase() !== 'transfer') {
+            totalEcoScore += transaction.ecoScore;
+            transactionsCount++;
+          }
+        });
+        
+        const avgEcoScore = transactionsCount > 0 ? Math.round(totalEcoScore / transactionsCount) : 50;
+        
+        // Create a sustainability score
+        const now = new Date();
+        const score = await storage.createSustainabilityScore({
+          userId,
+          overallScore: avgEcoScore,
+          carbonFootprint: 200 + (100 - avgEcoScore),
+          sustainablePurchases: avgEcoScore,
+          waterUsage: 5 + (100 - avgEcoScore) / 10,
+          date: now
+        });
+        
+        console.log("Created new sustainability score:", score);
+        
+        // Now use this score to generate trend data
+        const scoreDate = new Date(score.date);
+        
+        // Create two earlier dates for trend simulation
+        const oneWeekAgo = new Date(scoreDate);
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        
+        const twoWeeksAgo = new Date(scoreDate);
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+        
+        // Create trend data with the new score
+        const trendData = [
+          {
+            date: twoWeeksAgo.toISOString(),
+            month: twoWeeksAgo.toLocaleString('default', { month: 'short' }),
+            day: twoWeeksAgo.getDate(),
+            ecoScore: Math.max(score.overallScore - 5, 0),
+            carbonFootprint: score.carbonFootprint * 1.1,
+            sustainablePurchases: Math.max(score.sustainablePurchases - 8, 0),
+            waterUsage: score.waterUsage * 1.1
+          },
+          {
+            date: oneWeekAgo.toISOString(),
+            month: oneWeekAgo.toLocaleString('default', { month: 'short' }),
+            day: oneWeekAgo.getDate(),
+            ecoScore: Math.max(score.overallScore - 2, 0),
+            carbonFootprint: score.carbonFootprint * 1.05,
+            sustainablePurchases: Math.max(score.sustainablePurchases - 3, 0),
+            waterUsage: score.waterUsage * 1.05
+          },
+          {
+            date: scoreDate.toISOString(),
+            month: scoreDate.toLocaleString('default', { month: 'short' }),
+            day: scoreDate.getDate(),
+            ecoScore: score.overallScore,
+            carbonFootprint: score.carbonFootprint,
+            sustainablePurchases: score.sustainablePurchases,
+            waterUsage: score.waterUsage
+          }
+        ];
+        
+        console.log("Generated trend data from new score:", trendData);
+        return res.status(200).json(trendData);
       }
       
       console.log("Latest score found:", latestScore);
@@ -128,7 +207,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const twoWeeksAgo = new Date(latestScoreDate);
       twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
       
-      // Create synthetic trend data
+      // Create trend data with existing score
       const trendData = [
         {
           date: twoWeeksAgo.toISOString(),
@@ -159,7 +238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       ];
       
-      console.log("Generated trend data:", trendData);
+      console.log("Generated trend data from existing score:", trendData);
       res.status(200).json(trendData);
     } catch (error) {
       console.error("Error fetching sustainability trends:", error);
