@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { 
   LineChart, 
@@ -39,7 +39,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
               style={{ backgroundColor: entry.color }}
             ></div>
             <p className="text-neutral-700">
-              {entry.name}: {entry.value} 
+              {entry.name}: {entry.value?.toFixed(1) || entry.value} 
               {entry.name === 'Eco Score' && '/100'}
               {entry.name === 'Carbon Footprint' && ' kg'}
               {entry.name === 'Sustainable Purchases' && '%'}
@@ -57,10 +57,15 @@ export default function SustainabilityTrendsSection() {
   const [timeRange, setTimeRange] = useState<TimeRange>('Quarter');
   
   // Fetch sustainability trend data from API
-  const { data, isLoading, error } = useQuery<TrendDataPoint[]>({
+  const { data, isLoading, error, refetch } = useQuery<TrendDataPoint[]>({
     queryKey: ['/api/sustainability-trends', { timeRange }],
     // Include timeRange as part of the query key to refetch when it changes
   });
+  
+  // When timeRange changes, refetch data
+  useEffect(() => {
+    refetch();
+  }, [timeRange, refetch]);
   
   // Create a formatted label for X-axis that shows month and day
   const formattedData = useMemo(() => {
@@ -112,6 +117,11 @@ export default function SustainabilityTrendsSection() {
     };
   }, [data]);
   
+  // Log the data to the console for debugging
+  useEffect(() => {
+    console.log("Sustainability trend data:", data);
+  }, [data]);
+  
   // Display loading state
   if (isLoading) {
     return (
@@ -146,6 +156,12 @@ export default function SustainabilityTrendsSection() {
         <h2 className="text-lg font-semibold font-heading text-neutral-800 mb-4">Sustainability Trends</h2>
         <div className="bg-red-50 p-4 rounded-lg text-red-800">
           <p>Unable to load trend data. Please try again later.</p>
+          <button 
+            onClick={() => refetch()}
+            className="mt-2 px-3 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded text-sm"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
