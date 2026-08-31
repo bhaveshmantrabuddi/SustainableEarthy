@@ -212,3 +212,21 @@ export const insertRiskAssessmentSchema = createInsertSchema(riskAssessments).om
 
 export type InsertRiskAssessment = z.infer<typeof insertRiskAssessmentSchema>;
 export type RiskAssessment = typeof riskAssessments.$inferSelect;
+
+// Semantic recommendations request (Gemini embeddings + Google Search/Maps grounding).
+// NOTE (security): only normalized purchase info (merchant/category/description/amount)
+// is ever sent to Gemini — no card numbers or other financial identifiers.
+export const recommendationRequestSchema = z.object({
+  transaction: z.object({
+    merchant: z.string().min(1).max(200),
+    category: z.string().max(100).optional().default("other"),
+    amount: z.number().nonnegative().optional(),
+    description: z.string().max(500).optional(),
+  }),
+  // Optional request-scoped location for Google Maps grounding.
+  // Never persisted server-side.
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
+});
+
+export type RecommendationRequest = z.infer<typeof recommendationRequestSchema>;

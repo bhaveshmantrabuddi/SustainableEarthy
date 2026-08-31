@@ -2,7 +2,9 @@ import axios from 'axios';
 import { NextFunction, Request, Response } from 'express';
 
 // API key for Google Gemini
-const API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyDP5xs9wfpIj1xqh8ABXDzaarwXMapZIDA';
+// SECURITY: the API key must come ONLY from the environment. Never hardcode a
+// fallback key here — a previously committed fallback has been removed.
+const API_KEY = process.env.GEMINI_API_KEY || '';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
 
 /**

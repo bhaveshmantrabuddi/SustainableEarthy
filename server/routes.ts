@@ -1,15 +1,16 @@
-import type { Express, Request, Response, NextFunction } from "express";
+import type { Express, Request, Response, NextFunction, RequestHandler } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { 
-  csvUploadSchema, 
-  insertTransactionSchema, 
+import {
+  csvUploadSchema,
+  insertTransactionSchema,
   insertSustainabilityScoreSchema,
   insertCashbackRewardSchema,
   insertInvestmentProfileSchema,
   insertInvestmentSchema,
   insertRiskAssessmentSchema,
-  insertGreenInvestmentSchema
+  insertGreenInvestmentSchema,
+  recommendationRequestSchema
 } from "@shared/schema";
 import { parseCSV, CSVParseError } from "./utils/csvParser";
 import { processTransactions } from "./utils/sustainabilityCalculator";
@@ -17,13 +18,15 @@ import { ecoSearchHandler } from "./utils/ecoSearch";
 import plaidRouter from "./utils/plaidRoutes";
 import { ZodError } from "zod";
 import { setupAuth } from "./auth";
-import { 
-  initializeStockTracker, 
-  startStockTracker, 
+import {
+  initializeStockTracker,
+  startStockTracker,
   buyStock,
   getPortfolio,
   getRoi
 } from "./utils/stockTracker";
+import { getRecommendationsForTransaction } from "./services/recommendationService";
+import { MissingApiKeyError, GeminiServiceError } from "./services/geminiClient";
 
 // Authentication middleware
 const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
@@ -294,7 +297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get recommendations
+  // Get recommendations (static recommendations stored per user)
   app.get("/api/recommendations", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = req.user!.id;
@@ -699,6 +702,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Semantic sustainable-alternative recommendations (Gemini 768D embeddings +
+  // Google Search / Maps grounding). Location is request-scoped and optional;
+  // business logic lives in server/services/recommendationService.ts.
+  registerRecommendationRoutes(app);
+
   const httpServer = createServer(app);
   return httpServer;
+}
+
+/**
+ * POST /api/recommendations
+ *
+ * Input:
+ *   {
+ *     "transaction": { "merchant": "Starbucks", "category": "dining",
+ *                      "amount": 6.75, "description": "latte" },
+ *     "latitude": 37.77,      // optional, request-scoped, never persisted
+ *     "longitude": -122.41    // optional
+ *   }
+ *
+ * Output:
+ *   {
+ *     "purchase": {...},
+ *     "semantic_alternatives": [...],   // Gemini 768D embedding retrieval + weighted ranking
+ *     "local_alternatives": [...] | null, // Google Maps grounding; null when no location
+ *     "merchant_sustainability": {...} | null, // Google Search grounding (cached)
+ *     "warnings": [...]
+ *   }
+ *
+ * authMiddleware is injectable for testing (defaults to session auth).
+ */
+export function registerRecommendationRoutes(
+  app: Express,
+  authMiddleware: RequestHandler = isAuthenticated,
+): void {
+  app.post("/api/recommendations", authMiddleware, async (req: Request, res: Response) => {
+    // 1. Validate input shape
+    const parsed = recommendationRequestSchema.safeParse(req.body ?? {});
+    if (!parsed.success) {
+      return res.status(400).json({
+        message: "Invalid request body",
+        errors: parsed.error.flatten().fieldErrors,
+      });
+    }
+    const { transaction, latitude, longitude } = parsed.data;
+
+    try {
+      // 2. Business logic stays in the service layer
+      const result = await getRecommendationsForTransaction(transaction, { latitude, longitude });
+      return res.status(200).json(result);
+    } catch (error) {
+      // 3. Graceful, well-defined failure modes
+      if (error instanceof MissingApiKeyError) {
+        return res.status(503).json({
+          message: "Gemini features are unavailable: server is missing GEMINI_API_KEY.",
+        });
+      }
+      if (error instanceof GeminiServiceError) {
+        return res.status(502).json({ message: `Gemini request failed: ${error.message}` });
+      }
+      if (error instanceof Error && /required/i.test(error.message)) {
+        return res.status(400).json({ message: error.message });
+      }
+      console.error("Error building recommendations:", error);
+      return res.status(500).json({ message: "Failed to build recommendations" });
+    }
+  });
 }

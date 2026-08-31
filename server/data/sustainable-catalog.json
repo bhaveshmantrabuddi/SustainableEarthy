@@ -1,0 +1,220 @@
+{
+  "_comment": "Curated DEMO catalog of sustainable alternative products used as the retrieval corpus. Scores are EcoFinance editorial estimates (0-100), not certifications. This is demo data to make semantic retrieval real, not a production dataset.",
+  "products": [
+    {
+      "id": "allbirds-wool-runners",
+      "name": "Allbirds Wool Runners",
+      "merchant": "Allbirds",
+      "category": "shopping",
+      "price": 98.0,
+      "sustainabilityScore": 88,
+      "url": "https://www.allbirds.com/products/wool-runners",
+      "description": "Sustainable running shoes made from merino wool and eucalyptus fiber with sugarcane soles; carbon-neutral certified, machine washable, low-emission materials."
+    },
+    {
+      "id": "veja-campo-sneakers",
+      "name": "Veja Campo Sneakers",
+      "merchant": "Veja",
+      "category": "shopping",
+      "price": 150.0,
+      "sustainabilityScore": 85,
+      "url": "https://www.veja-store.com/en-us/campo-chromefree",
+      "description": "Chrome-free leather sneakers made with wild rubber from the Amazon and organic cotton; transparent supply chain and fair-trade sourcing."
+    },
+    {
+      "id": "thousand-fell-recycled-sneaker",
+      "name": "Thousand Fell Recycled Court Sneaker",
+      "merchant": "Thousand Fell",
+      "category": "shopping",
+      "price": 125.0,
+      "sustainabilityScore": 90,
+      "url": "https://thousandfell.com/products/mens-court-sneaker",
+      "description": "Closed-loop recyclable sneakers made from recycled bottles and bio-leather; free take-back recycling program keeps shoes out of landfill."
+    },
+    {
+      "id": "patagonia-organic-hoodie",
+      "name": "Patagonia Organic Cotton Hoody",
+      "merchant": "Patagonia",
+      "category": "shopping",
+      "price": 79.0,
+      "sustainabilityScore": 92,
+      "url": "https://www.patagonia.com/product/organic-cotton-hoody",
+      "description": "Fair Trade Certified sewing, 100% organic cotton hoodie from a brand known for environmental activism, repair programs, and recycled materials."
+    },
+    {
+      "id": "tentree-classic-hoodie",
+      "name": "Tentree Classic Hoodie",
+      "merchant": "Tentree",
+      "category": "shopping",
+      "price": 68.0,
+      "sustainabilityScore": 86,
+      "url": "https://www.tentree.com/products/classic-hoodie",
+      "description": "Hoodie made from organic cotton and recycled polyester; B Corp that plants ten trees for every item purchased."
+    },
+    {
+      "id": "kuyichi-hoodie",
+      "name": "Kuyichi Organic Hoodie",
+      "merchant": "Kuyichi",
+      "category": "shopping",
+      "price": 74.0,
+      "sustainabilityScore": 84,
+      "url": "https://www.kuyichi.com/organic-hoodie",
+      "description": "GOTS-certified organic cotton apparel from a pioneer fair-fashion brand focused on circular production and living wages."
+    },
+    {
+      "id": "local-farmers-market-produce",
+      "name": "Farmers Market Seasonal Produce Box",
+      "merchant": "Local Farmers Market",
+      "category": "groceries",
+      "price": 35.0,
+      "sustainabilityScore": 95,
+      "description": "Seasonal, locally grown organic produce with minimal packaging and near-zero transport emissions; supports local regenerative farms."
+    },
+    {
+      "id": "imperfect-foods-box",
+      "name": "Imperfect Foods Grocery Box",
+      "merchant": "Imperfect Foods",
+      "category": "groceries",
+      "price": 28.0,
+      "sustainabilityScore": 85,
+      "description": "Surplus and 'ugly' produce delivery that reduces food waste and packaging compared to conventional grocery retail."
+    },
+    {
+      "id": "organic-coffee-whole-beans",
+      "name": "Equal Exchange Organic Whole Bean Coffee",
+      "merchant": "Equal Exchange",
+      "category": "groceries",
+      "price": 14.0,
+      "sustainabilityScore": 90,
+      "url": "https://equalexchange.coop/products/organic-coffees",
+      "description": "Fair-trade, organic, shade-grown coffee from small farmer cooperatives; compostable packaging and long-term direct trade relationships."
+    },
+    {
+      "id": "refill-coffee-local",
+      "name": "Local Coffee Shop Brew with Reusable Cup Discount",
+      "merchant": "Local Independent Coffee",
+      "category": "dining",
+      "price": 4.5,
+      "sustainabilityScore": 88,
+      "description": "Locally roasted, ethically sourced coffee at an independent cafe; many offer discounts for reusable cups and compost their grounds."
+    },
+    {
+      "id": "clipper-tea",
+      "name": "Clipper Organic Loose Leaf Tea",
+      "merchant": "Clipper",
+      "category": "groceries",
+      "price": 8.0,
+      "sustainabilityScore": 82,
+      "description": "Fairtrade and organic loose leaf tea with plastic-free packaging from a certified B Corp."
+    },
+    {
+      "id": "public-transit-monthly-pass",
+      "name": "Monthly Public Transit Pass",
+      "merchant": "Public Transit Authority",
+      "category": "transportation",
+      "price": 90.0,
+      "sustainabilityScore": 95,
+      "description": "Low-carbon commuting via bus or rail; dramatically lower emissions per mile than rideshare or single-occupancy cars."
+    },
+    {
+      "id": "city-bike-share",
+      "name": "City Bike Share Membership",
+      "merchant": "Citi Bike",
+      "category": "transportation",
+      "price": 25.0,
+      "sustainabilityScore": 96,
+      "description": "Zero-emission urban transport; e-bike and classic bike share memberships cover short trips that would otherwise be rideshare rides."
+    },
+    {
+      "id": "electric-carpool-credit",
+      "name": "EV Carpool Ride Credit",
+      "merchant": "GreenRide Carpool",
+      "category": "transportation",
+      "price": 18.0,
+      "sustainabilityScore": 80,
+      "description": "Shared electric-vehicle rides that split emissions across passengers; lower-impact alternative to solo rideshare trips."
+    },
+    {
+      "id": "vegan-meal-kit",
+      "name": "Plant-Based Meal Kit (Two Servings)",
+      "merchant": "Purple Carrot",
+      "category": "dining",
+      "price": 22.0,
+      "sustainabilityScore": 84,
+      "description": "100% plant-based meal kit; lower carbon and water footprint than restaurant beef meals and fast food."
+    },
+    {
+      "id": "fast-casual-salad-bowl",
+      "name": "Local Salad Bar Grain Bowl",
+      "merchant": "Local Salad Bar",
+      "category": "dining",
+      "price": 12.0,
+      "sustainabilityScore": 78,
+      "description": "Plant-forward fast casual meal from a local restaurant using seasonal ingredients and compostable packaging."
+    },
+    {
+      "id": "who-gives-a-crap-toilet-paper",
+      "name": "Who Gives A Crap Recycled Toilet Paper",
+      "merchant": "Who Gives A Crap",
+      "category": "shopping",
+      "price": 12.0,
+      "sustainabilityScore": 89,
+      "url": "https://us.whogivesacrap.org/products/recycled-toilet-paper",
+      "description": "100% recycled bath tissue, plastic-free packaging, and 50% of profits donated to sanitation projects."
+    },
+    {
+      "id": "blueland-cleaning-refill",
+      "name": "Blueland Cleaning Tablet Refill Kit",
+      "merchant": "Blueland",
+      "category": "shopping",
+      "price": 18.0,
+      "sustainabilityScore": 87,
+      "description": "Refillable cleaning products that eliminate single-use plastic bottles; Cradle-to-Cradle certified tablets."
+    },
+    {
+      "id": "secondhand-thredup-sweater",
+      "name": "thredUP Pre-Loved Wool Sweater",
+      "merchant": "thredUP",
+      "category": "shopping",
+      "price": 24.0,
+      "sustainabilityScore": 91,
+      "description": "Certified secondhand clothing; extends garment life and avoids the full footprint of new apparel production."
+    },
+    {
+      "id": "refill-water-bottle",
+      "name": "Insulated Reusable Water Bottle",
+      "merchant": "Klean Kanteen",
+      "category": "shopping",
+      "price": 32.0,
+      "sustainabilityScore": 85,
+      "description": "Climate-certified B Corp stainless steel bottle that replaces single-use plastic water bottles."
+    },
+    {
+      "id": "green-energy-utility-plan",
+      "name": "Renewable Energy Utility Plan",
+      "merchant": "Green Utilities",
+      "category": "utilities",
+      "price": 45.0,
+      "sustainabilityScore": 92,
+      "description": "Electricity plan backed by wind and solar renewable energy certificates; lower-carbon home energy alternative."
+    },
+    {
+      "id": "library-ebook-membership",
+      "name": "Library E-Book and Audiobook Membership",
+      "merchant": "Local Library",
+      "category": "entertainment",
+      "price": 0.0,
+      "sustainabilityScore": 97,
+      "description": "Free digital borrowing that avoids the manufacturing and shipping footprint of new books and media."
+    },
+    {
+      "id": "repair-cafe-session",
+      "name": "Repair Cafe Fix-It Session",
+      "merchant": "Community Repair Cafe",
+      "category": "other",
+      "price": 5.0,
+      "sustainabilityScore": 94,
+      "description": "Volunteer-run repair sessions that extend the life of electronics, clothing, and furniture instead of replacing them."
+    }
+  ]
+}

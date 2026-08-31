@@ -1,4 +1,5 @@
 import RecommendationsSection from "@/components/recommendations/RecommendationsSection";
+import SemanticAlternativesSection from "@/components/recommendations/SemanticAlternativesSection";
 
 export default function Recommendations() {
   return (
@@ -8,6 +9,9 @@ export default function Recommendations() {
         <h1 className="text-2xl sm:text-3xl font-bold font-heading text-neutral-800">Sustainable Recommendations</h1>
         <p className="text-neutral-600 mt-1">Actionable suggestions to improve your environmental impact</p>
       </div>
+
+      {/* Semantic alternatives (Gemini embeddings + Google Search/Maps grounding) */}
+      <SemanticAlternativesSection />
 
       {/* Recommendations section */}
       <RecommendationsSection />

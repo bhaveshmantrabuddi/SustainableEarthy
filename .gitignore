@@ -4,3 +4,15 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Local persisted vector index + merchant research cache
+.data/
+
+# ML artifacts
+ml/data/
+ml/results.json
+__pycache__/
+
+# Environment (never commit real keys)
+.env
+.env.local

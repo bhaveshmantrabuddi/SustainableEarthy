@@ -6,6 +6,7 @@ import TransactionHistorySection from "@/components/transactions/TransactionHist
 import RecommendationsSection from "@/components/recommendations/RecommendationsSection";
 import PlaidLinkSection from "@/components/plaid/PlaidLinkSection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import SemanticAlternativesSection from "@/components/recommendations/SemanticAlternativesSection";
 
 export default function Dashboard() {
   return (
@@ -49,6 +50,9 @@ export default function Dashboard() {
 
       {/* Recommendations section */}
       <RecommendationsSection />
+
+      {/* Semantic alternatives (Gemini embeddings + Google Search/Maps grounding) */}
+      <SemanticAlternativesSection />
     </div>
   );
 }

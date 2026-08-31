@@ -152,7 +152,12 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
+    const user: User = {
+      id,
+      username: insertUser.username,
+      password: insertUser.password,
+      name: insertUser.name ?? null,
+    };
     this.users.set(id, user);
     return user;
   }
@@ -173,7 +178,16 @@ export class MemStorage implements IStorage {
   
   async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
     const id = this.currentTransactionId++;
-    const transaction: Transaction = { ...insertTransaction, id };
+    const transaction: Transaction = {
+      id,
+      date: insertTransaction.date,
+      merchant: insertTransaction.merchant,
+      category: insertTransaction.category,
+      amount: insertTransaction.amount,
+      ecoScore: insertTransaction.ecoScore,
+      hasAlternatives: insertTransaction.hasAlternatives ?? false,
+      userId: insertTransaction.userId ?? null,
+    };
     this.transactions.set(id, transaction);
     return transaction;
   }
@@ -227,7 +241,7 @@ export class MemStorage implements IStorage {
   
   async createSustainabilityScore(insertScore: InsertSustainabilityScore): Promise<SustainabilityScore> {
     const id = this.currentScoreId++;
-    const score: SustainabilityScore = { ...insertScore, id };
+    const score: SustainabilityScore = { ...insertScore, userId: insertScore.userId ?? null, id };
     this.sustainabilityScores.set(id, score);
     return score;
   }
@@ -244,7 +258,11 @@ export class MemStorage implements IStorage {
   
   async createCategoryBreakdown(insertBreakdown: InsertCategoryBreakdown): Promise<CategoryBreakdown> {
     const id = this.currentBreakdownId++;
-    const breakdown: CategoryBreakdown = { ...insertBreakdown, id };
+    const breakdown: CategoryBreakdown = {
+      ...insertBreakdown,
+      userId: insertBreakdown.userId ?? null,
+      id,
+    };
     this.categoryBreakdowns.set(id, breakdown);
     return breakdown;
   }
@@ -265,7 +283,11 @@ export class MemStorage implements IStorage {
   
   async createRecommendation(insertRecommendation: InsertRecommendation): Promise<Recommendation> {
     const id = this.currentRecommendationId++;
-    const recommendation: Recommendation = { ...insertRecommendation, id };
+    const recommendation: Recommendation = {
+      ...insertRecommendation,
+      userId: insertRecommendation.userId ?? null,
+      id,
+    };
     this.recommendations.set(id, recommendation);
     return recommendation;
   }

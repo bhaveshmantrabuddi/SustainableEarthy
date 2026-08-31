@@ -191,8 +191,8 @@ export function processTransactions(csvRows: CSVRow[], userId: number): {
   
   // Create category breakdowns
   const categoryBreakdowns: InsertCategoryBreakdown[] = [];
-  
-  for (const [category, data] of categoryMap.entries()) {
+
+  for (const [category, data] of Array.from(categoryMap.entries())) {
     categoryBreakdowns.push({
       userId,
       category,
