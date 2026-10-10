@@ -1,3 +1,5 @@
+Portfolio fork by Bhavesh Mantrabuddi. [Team credits and project history](PORTFOLIO.md).
+
 # EcoFinance - Sustainable Finance Tracker
 
 A comprehensive web application designed to transform personal financial behavior into meaningful environmental impact through intelligent analysis, real-time tracking, and AI-powered sustainability insights.
